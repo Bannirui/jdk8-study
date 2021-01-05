@@ -12,35 +12,26 @@ import java.util.concurrent.*;
 public class ThreadPoolTest {
 
     /**
-     * 线程池的核心线程数量
+     * @author dingrui
+     * @date 2021/1/5
+     * @return
+     * @description
      */
-    static int corePoolSize = 2;
-
-    /**
-     * 线程池的最大线程数量
-     */
-    static int maximumPoolSizeSize = 5;
-
-    /**
-     * 线程活动保持时间 3s
-     */
-    static long keepAliveTime = 3;
-
-    /**
-     * 任务队列
-     */
-    static ArrayBlockingQueue workQueue = new ArrayBlockingQueue(10);
-
     @Test
     public void test1() {
         // 手动创建线程池
         ThreadPoolExecutor executor = new ThreadPoolExecutor(
-                corePoolSize,
-                maximumPoolSizeSize,
-                keepAliveTime,
+                2,
+                5,
+                3L,
                 TimeUnit.SECONDS,
-                workQueue,
-                Executors.defaultThreadFactory()
+                new ArrayBlockingQueue<>(10),
+                r -> {
+                    System.out.println("创建线程：" + r.hashCode());
+                    //线程命名
+                    return new Thread(r, "threadPool" + r.hashCode());
+                },
+                new ThreadPoolExecutor.AbortPolicy()
         );
         //提交一个任务
         executor.execute(() -> System.out.println("ok"));
