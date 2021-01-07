@@ -52,4 +52,15 @@ public class HashMapTest {
         System.out.println();
     }
 
+    @Test
+    public void test3() {
+        HashMap<String, String> map = new HashMap<>(3);
+        map.put("k1", "v1");
+        map.put("k2", "v2");
+        map.put("k3", "v3");
+        map.put("k4", "v4"); // 指定初始化容量是3 第一次put初始化出来容量是4 阈值是3 这次put就会触发扩容 只要让前面3次put的key的hash值一样就可以模拟
+        map.put("k5", "v5");
+
+        System.out.println();
+    }
 }
