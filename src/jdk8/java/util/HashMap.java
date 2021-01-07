@@ -713,33 +713,33 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                     else if (e instanceof TreeNode) // 取出来的是树
                         ((TreeNode<K,V>)e).split(this, newTab, j, oldCap);
                     else { // preserve order 取出来的是链表
-                        Node<K,V> loHead = null, loTail = null;
-                        Node<K,V> hiHead = null, hiTail = null;
+                        Node<K,V> loHead = null, loTail = null; // 低位尾节点
+                        Node<K,V> hiHead = null, hiTail = null; // 高位尾节点
                         Node<K,V> next;
-                        do { // 取出来的e是条链表 根据(e.hash & oldCap) == 0区分 那么一条链表上每个节点的hash都是一样的 也就是说这一整条链表要么放到low位 要么放到high位 为啥还要将节点挨个遍历出来呢
+                        do { // 取出来的e是链表里面的各个节点(当前节点以及next域 相当于子链表) 根据(e.hash & oldCap) == 0区分 这一条链表上每个节点的hash值不一定是一样的 也就是说这一整条链表上的节点需要重新确定是放到low位 还是放到high位
                             next = e.next;
                             if ((e.hash & oldCap) == 0) { // 从结果导向：这个算法的作用是将原来数组元素打散 既然是扩容 达到的目的就是数组容量翻倍了 剩下来要解决的问题是怎么将老数组元素移到新数组 假使就是按照老数组脚标移动过去 就一定会出现新数组前一半被使用(low表示) 后一半空置(high表示) 这个算法将所有的桶的去向分成两种 一种还是以前的脚标 移动到新数组前一半 还有一种就是移动到新数组后一半
-                                if (loTail == null)
-                                    loHead = e; // 这个地方已经就是把取出来的整条链表赋值给了loHead
+                                if (loTail == null) // 老数组链表节点插入lo链表
+                                    loHead = e; // 第一次的时候给到头指针 在单链表中只有拥有head指针 就等于拥有了整个链表
                                 else
                                     loTail.next = e;
-                                loTail = e;
+                                loTail = e; // 尾节点后移 loTail=loTail.next
                             }
-                            else {
+                            else { // 老数组链表节点插入hi链表 其实本质就是固定head节点不动 tail节点相当于cur指针 每次通过cur.next控制链表后续的节点
                                 if (hiTail == null)
                                     hiHead = e;
                                 else
                                     hiTail.next = e;
                                 hiTail = e;
                             }
-                        } while ((e = next) != null); // 遍历链表
-                        if (loTail != null) {
+                        } while ((e = next) != null); // 遍历链表节点
+                        if (loTail != null) { // 低位尾节点
                             loTail.next = null;
-                            newTab[j] = loHead;
+                            newTab[j] = loHead; // 移动到低位的链表
                         }
                         if (hiTail != null) {
                             hiTail.next = null;
-                            newTab[j + oldCap] = hiHead;
+                            newTab[j + oldCap] = hiHead; // 移动到高位的链表
                         }
                     }
                 }
