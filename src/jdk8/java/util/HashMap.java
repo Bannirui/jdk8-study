@@ -38,9 +38,9 @@ import sun.misc.SharedSecrets;
 
 /**
  * Hash table based implementation of the <tt>Map</tt> interface.  This
- * implementation provides all of the optional map operations, and permits
+ * implementation provides all of the optional map operations, and permits todo 这个地方可能要留意 对比ConcurrentHashMap不允许null类型key value
  * <tt>null</tt> values and the <tt>null</tt> key.  (The <tt>HashMap</tt>
- * class is roughly equivalent to <tt>Hashtable</tt>, except that it is
+ * class is roughly equivalent to <tt>Hashtable</tt>, except that it is todo HashTable vs HashMap
  * unsynchronized and permits nulls.)  This class makes no guarantees as to
  * the order of the map; in particular, it does not guarantee that the order
  * will remain constant over time.
@@ -50,7 +50,7 @@ import sun.misc.SharedSecrets;
  * disperses the elements properly among the buckets.  Iteration over
  * collection views requires time proportional to the "capacity" of the
  * <tt>HashMap</tt> instance (the number of buckets) plus its size (the number
- * of key-value mappings).  Thus, it's very important not to set the initial
+ * of key-value mappings).  Thus, it's very important not to set the initial todo 迭代的时间复杂度根数组长度成正比 不要初始化过大容量或者过小loadFactor
  * capacity too high (or the load factor too low) if iteration performance is
  * important.
  *
@@ -65,7 +65,7 @@ import sun.misc.SharedSecrets;
  * structures are rebuilt) so that the hash table has approximately twice the
  * number of buckets.
  *
- * <p>As a general rule, the default load factor (.75) offers a good
+ * <p>As a general rule, the default load factor (.75) offers a good todo loadFactor取值0.75 经验值 在get、put的时间和空间复杂度上平衡 过大 意味着entry数组比较满 整体比较节省空间开销 但是每个enty桶里面元素很多 可能链表比较长或者树高比较高 get和put的时间消耗会增加 反之 如果过小 意味着经常扩容 空间消耗大 但是get、put快
  * tradeoff between time and space costs.  Higher values decrease the
  * space overhead but increase the lookup cost (reflected in most of
  * the operations of the <tt>HashMap</tt> class, including
@@ -77,7 +77,7 @@ import sun.misc.SharedSecrets;
  * operations will ever occur.
  *
  * <p>If many mappings are to be stored in a <tt>HashMap</tt>
- * instance, creating it with a sufficiently large capacity will allow
+ * instance, creating it with a sufficiently large capacity will allow todo 实际开发中如果可预期存储容量 构造方法中指定避免多次rehash损耗性能
  * the mappings to be stored more efficiently than letting it perform
  * automatic rehashing as needed to grow the table.  Note that using
  * many keys with the same {@code hashCode()} is a sure way to slow
@@ -85,7 +85,7 @@ import sun.misc.SharedSecrets;
  * are {@link Comparable}, this class may use comparison order among
  * keys to help break ties.
  *
- * <p><strong>Note that this implementation is not synchronized.</strong>
+ * <p><strong>Note that this implementation is not synchronized.</strong> todo 非线程安全容器 但是不代表线程不安全 比如多线程场景下只发生get 永远不可能出现数据污染
  * If multiple threads access a hash map concurrently, and at least one of
  * the threads modifies the map structurally, it <i>must</i> be
  * synchronized externally.  (A structural modification is any operation
@@ -98,7 +98,7 @@ import sun.misc.SharedSecrets;
  * {@link Collections#synchronizedMap Collections.synchronizedMap}
  * method.  This is best done at creation time, to prevent accidental
  * unsynchronized access to the map:<pre>
- *   Map m = Collections.synchronizedMap(new HashMap(...));</pre>
+ *   Map m = Collections.synchronizedMap(new HashMap(...));</pre> todo 面试的时候如果问在多线程场景下如何使用
  *
  * <p>The iterators returned by all of this class's "collection view methods"
  * are <i>fail-fast</i>: if the map is structurally modified at any time after
@@ -172,7 +172,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * programming practices that are already so slow that this makes
      * little difference.)
      *
-     * Because TreeNodes are about twice the size of regular nodes, we
+     * Because TreeNodes are about twice the size of regular nodes, we todo 因为树形节点上要维护left和right域 空间上是单链表的两倍 链表<==>红黑树 之间的转换是有条件的 尽量平衡在空间和时间
      * use them only when bins contain enough nodes to warrant use
      * (see TREEIFY_THRESHOLD). And when they become too small (due to
      * removal or resizing) they are converted back to plain bins.  In
@@ -233,19 +233,19 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     /**
      * The default initial capacity - MUST be a power of two.
      */
-    static final int DEFAULT_INITIAL_CAPACITY = 1 << 4; // aka 16
+    static final int DEFAULT_INITIAL_CAPACITY = 1 << 4; // aka 16 默认容量大小16 为啥要保证是2的幂次方->如果有这个前提hash%n == hash & (n-1) -> 位运算求数组脚标快 -> get、put都要对key进行hash找脚标位置
 
     /**
      * The maximum capacity, used if a higher value is implicitly specified
      * by either of the constructors with arguments.
      * MUST be a power of two <= 1<<30.
      */
-    static final int MAXIMUM_CAPACITY = 1 << 30;
+    static final int MAXIMUM_CAPACITY = 1 << 30; // 容量上限2^30 即使构造方法入参的值大也只会取这个上限值
 
     /**
      * The load factor used when none specified in constructor.
      */
-    static final float DEFAULT_LOAD_FACTOR = 0.75f;
+    static final float DEFAULT_LOAD_FACTOR = 0.75f; // 默认的loadFactor
 
     /**
      * The bin count threshold for using a tree rather than list for a
@@ -255,14 +255,14 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * tree removal about conversion back to plain bins upon
      * shrinkage.
      */
-    static final int TREEIFY_THRESHOLD = 8;
+    static final int TREEIFY_THRESHOLD = 8; // 链表->树 树化条件之一：当前链表节点数阀值>=8
 
     /**
      * The bin count threshold for untreeifying a (split) bin during a
      * resize operation. Should be less than TREEIFY_THRESHOLD, and at
      * most 6 to mesh with shrinkage detection under removal.
      */
-    static final int UNTREEIFY_THRESHOLD = 6;
+    static final int UNTREEIFY_THRESHOLD = 6; // 树->链表 树退化条件：树的节点数量<=6 但是这个的使用场景是在resize过程中split树的时候 树节点数量减少的场景还有一种是在remove元素的时候 这个时候即使导致当前树节点数量<=6 也不会将树退化成链表
 
     /**
      * The smallest table capacity for which bins may be treeified.
@@ -270,7 +270,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * Should be at least 4 * TREEIFY_THRESHOLD to avoid conflicts
      * between resizing and treeification thresholds.
      */
-    static final int MIN_TREEIFY_CAPACITY = 64;
+    static final int MIN_TREEIFY_CAPACITY = 64; // 链表->树 树化条件之二：map容量>=64
 
     /**
      * Basic hash bin node, used for most entries.  (See below for
@@ -336,26 +336,26 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      */
     static final int hash(Object key) {
         int h;
-        return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
+        return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16); // 为什么不直接用hashCode 而是要再取异或 根据使用场景推导：首先hash函数的用到的地方是根据key的hash值求出entry数组脚标 因为保证了数组长度是2的幂次方 因此index=hash&(n-1) 两个二进制与的结果取决于各个位上是0还是1 这个n的范围是[0,2^30] 假设n从低位到高位 1=0 10=2 100=4 1000=8 1,0000=16 10,0000=32 100,0000=64 ... 2^15=32768 也就是说如果n的低16位是1的化map容量就是32k 在我个人使用的场景下 基本很难有真实场景需要用这么大的map 换言之就是n的第低m位是1(真实场景下m<16比较多) n-1之后就是低m-1位都是1 这时候hash&(n-1) 起到决定性作用的就是这低m-1位 hash中有32位 真正决定脚标参与计算的只有m-1位 map容量越小 m越小 index越可能一样 发生hash碰撞的机率越大 现在如果要减少发生hash碰撞的概率 而且在不增加容量的前提下 只要改变hash值就行 让hash值具有丰富性 增加hash值低m-1位的丰富性 这就是这个方法的根本：hash本身32位 右移16位后用高16位异或上自己 使得hash值变得丰富->减少hash碰撞
     }
 
     /**
-     * Returns x's Class if it is of the form "class C implements
-     * Comparable<C>", else null.
+     * Returns x's Class if it is of the form "class C implements 当x的类型为X时 而且X这个类直接实现了Comparable接口 并且compareTo比较类型也是X本身类型 返回x的运行时类型 否则就返回null
+     * Comparable<C>", else null.  ParameterizedType是Type接口的子接口，表示参数化的类型，即实现了泛型参数的类型  1，如果直接用bean对象instanceof ParameterizedType，结果都是false 2，Class对象不能instanceof ParameterizedType，编译会报错 3，只有用Type对象instanceof ParameterizedType才能得到想要的比较结果。可以这么理解：一个Bean类不会是ParameterizedType，只有代表这个Bean类的类型（Type）才可能是ParameterizedType 4，实现泛型参数，可以是给泛型传入了一个真实的类型，或者传入另一个新声明的泛型参数；只声明泛型而不实现，instanceof ParameterizedType为false
      */
     static Class<?> comparableClassFor(Object x) {
-        if (x instanceof Comparable) {
+        if (x instanceof Comparable) { // 第一步就是判断当前对象 自己或者它的超类有没有实现Comparable的接口 如果这个条件都没有满足 直接返回null 没必要继续了
             Class<?> c; Type[] ts, as; Type t; ParameterizedType p;
-            if ((c = x.getClass()) == String.class) // bypass checks
-                return c;
-            if ((ts = c.getGenericInterfaces()) != null) {
-                for (int i = 0; i < ts.length; ++i) {
-                    if (((t = ts[i]) instanceof ParameterizedType) &&
-                        ((p = (ParameterizedType)t).getRawType() ==
-                         Comparable.class) &&
-                        (as = p.getActualTypeArguments()) != null &&
-                        as.length == 1 && as[0] == c) // type arg is c
-                        return c;
+            if ((c = x.getClass()) == String.class) // bypass checks getclass：1，getClass获取的是具类，不管对象怎么转型获取的都是运行时类型，也就是new的时候的类型 2，匿名对象，匿名对象调用getClass()时返回的是依赖它的对象的运行时类型，并以1,2,3…的索引区分
+                return c; // 如果是String类型 直接返回String.class
+            if ((ts = c.getGenericInterfaces()) != null) { // 判断是否有直接实现的接口 getGenericInterfaces()方法返回的是该对象的运行时类型“直接实现”的接口，这意味着 1,返回的一定是接口 2,必然是该类型自己实现的接口，继承过来的不算
+                for (int i = 0; i < ts.length; ++i) { // 遍历直接实现的接口 getRawType()方法返回声明了这个类型的类或接口，也就是去掉了泛型参数部分的类型对象
+                    if (((t = ts[i]) instanceof ParameterizedType) && // 该接口实现了泛型
+                        ((p = (ParameterizedType)t).getRawType() == // 获取接口不带参数部分的类型对象
+                         Comparable.class) && // 该类型是Comparable
+                        (as = p.getActualTypeArguments()) != null && // 获取泛型参数数组
+                        as.length == 1 && as[0] == c) // type arg is c // 只有一个泛型参数，且该实现类型是该类型本身 返回该类型
+                        return c; // getActualTypeArguments()以数组的形式返回泛型参数列表 1,当传入的是真实类型时，打印的是全类名 2,当传入的是另一个新声明的泛型参数时 ，打印的是代表该泛型参数的符号
                 }
             }
         }
@@ -373,22 +373,22 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     }
 
     /**
-     * Returns a power of two size for the given target capacity.
+     * Returns a power of two size for the given target capacity. 这个方法的目的是求出比cap大的最小的2的幂次方的值 比如cap=7返回8 cap=10返回16
      */
-    static final int tableSizeFor(int cap) {
+    static final int tableSizeFor(int cap) { // 位运算的优势就是性能 操作的数字类型是1Integer=4Byte=32Bit 为什么是右移求异或5次 对于一个32位二进制 极限1：是最高位等于1 第一次：1-2为1 第二次：1-4为1 第三次：1-8为1 第四次：1-16为1 第五次：1-32为1 极限2：最低位为1 第一次：32为1 第二次：32为1 ... 通用情况：第n位为1 再第一次到第五次右移求异或期间一定有一次会导致n-32都是1 在此之后再右移求异或也不改变这个结果
         int n = cap - 1;
         n |= n >>> 1;
         n |= n >>> 2;
         n |= n >>> 4;
         n |= n >>> 8;
         n |= n >>> 16;
-        return (n < 0) ? 1 : (n >= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1;
+        return (n < 0) ? 1 : (n >= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1; // 如果再cap=8 n=15 n+1=16 因此这就是cap-1的原因cap=8 cap-1=7 n=7 n+1=8
     }
 
     /* ---------------- Fields -------------- */
 
     /**
-     * The table, initialized on first use, and resized as
+     * The table, initialized on first use, and resized as todo HashMap自身是实现了Serializable接口可序列化的 但是table阈是transient修饰不能序列化的 为啥这样设计：1，对map的操作最终都是通过调用Object.hashCode来定位entry数组脚标i来定位table[i]进行get、put操作 Object.hashCode这个方法是native方法 不同的jvm可能不一样 2，这个数组是通过loadFactor控制扩容阀值的 就意味着数组里面总会有一部分空间是没有利用 属于闲置的 序列化空数组没有意义
      * necessary. When allocated, length is always a power of two.
      * (We also tolerate length zero in some operations to allow
      * bootstrapping mechanics that are currently not needed.)
@@ -413,7 +413,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * rehash).  This field is used to make iterators on Collection-views of
      * the HashMap fail-fast.  (See ConcurrentModificationException).
      */
-    transient int modCount; // 更新次数 put新增桶操作会更新这个值自增1
+    transient int modCount; // 更新次数 put新增桶操作会更新这个值自增1 modCount阈1.6版本以前是用volatile修饰的 多线程操作fast-fail机制保障 1.7以后移除了线程可见的修饰 现在唯一的作用是迭代器遍历的时候fast-fail
 
     /**
      * The next size value at which to resize (capacity * load factor).
@@ -637,7 +637,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
             else if (p instanceof TreeNode)
                 e = ((TreeNode<K,V>)p).putTreeVal(this, tab, hash, key, value);
             else {
-                for (int binCount = 0; ; ++binCount) {
+                for (int binCount = 0; ; ++binCount) { // binCount是从0开始循环的 进入treeifyBin树化方法的条件是binCount>=8-1=7 也就是说binCount>=7就会触发树化方法 换言之就是数组entry节点树>=8
                     if ((e = p.next) == null) {
                         p.next = newNode(hash, key, value, null);
                         if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
@@ -754,9 +754,9 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      */
     final void treeifyBin(Node<K,V>[] tab, int hash) {
         int n, index; Node<K,V> e;
-        if (tab == null || (n = tab.length) < MIN_TREEIFY_CAPACITY)
+        if (tab == null || (n = tab.length) < MIN_TREEIFY_CAPACITY) // 这个地方还要对map容量加个判断 也就是说如果entry数组某个桶的链表节点树>=8 1，当前map容量>=64 就将链表转树 2，当前map容量<64 就进行扩容 ==>先不去想这几个阀值的取值依据 单纯从结果推导：出现了链表一定是因为hash碰撞 链表的get、put时间复杂度都是O(n) 想降低时间复杂度就可以从n和O(n)入手 扩容可以将原本的链表长度减少分配到新数组的高低位 树化可以将get时间复杂度变成O(logn) 那么什么时候选择扩容什么时候选择树化就会影响这几个阀值的定义 如果当前entry数组的长度不大 也就是容量不大 hash碰撞的根源是数组长度太小导致的 那就扩容 如果entry数组的长度已经足够大 也就是map的容量足够大了 依然出现很大的hash碰撞概率 这个时候如果再进行扩容 就会造成数组很大的空间闲置浪费 扩容成本>树化成本
             resize();
-        else if ((e = tab[index = (n - 1) & hash]) != null) {
+        else if ((e = tab[index = (n - 1) & hash]) != null) { // 真正的链表->树 树化
             TreeNode<K,V> hd = null, tl = null;
             do {
                 TreeNode<K,V> p = replacementTreeNode(e, null);
@@ -2163,7 +2163,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
             }
 
             if (loHead != null) {
-                if (lc <= UNTREEIFY_THRESHOLD)
+                if (lc <= UNTREEIFY_THRESHOLD) // 树->链表 树退化的条件
                     tab[index] = loHead.untreeify(map);
                 else {
                     tab[index] = loHead;
