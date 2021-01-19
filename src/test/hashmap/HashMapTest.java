@@ -1,7 +1,6 @@
-package test;
+package test.hashmap;
 
 import org.junit.Test;
-import org.w3c.dom.Node;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -199,13 +198,16 @@ public class HashMapTest {
 
     static Class<?> comparableClassFor(Object x) {
         if (x instanceof Comparable) {
-            Class<?> c; Type[] ts, as; Type t; ParameterizedType p;
+            Class<?> c;
+            Type[] ts, as;
+            Type t;
+            ParameterizedType p;
             if ((c = x.getClass()) == String.class) // bypass checks 1，getClass获取的是具类，不管对象怎么转型获取的都是运行时类型，也就是new的时候的类型 2，匿名对象，匿名对象调用getClass()时返回的是依赖它的对象的运行时类型，并以1,2,3…的索引区分
                 return c;
             if ((ts = c.getGenericInterfaces()) != null) { // getGenericInterfaces()方法返回的是该对象的运行时类型“直接实现”的接口 1，返回的一定是接口 2，必然是该类型自己实现的接口，继承过来的不算
                 for (int i = 0; i < ts.length; ++i) {
                     if (((t = ts[i]) instanceof ParameterizedType) &&
-                            ((p = (ParameterizedType)t).getRawType() ==
+                            ((p = (ParameterizedType) t).getRawType() ==
                                     Comparable.class) &&
                             (as = p.getActualTypeArguments()) != null &&
                             as.length == 1 && as[0] == c) // type arg is c
