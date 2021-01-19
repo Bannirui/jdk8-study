@@ -24,3 +24,10 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 
+.DS_Store
+out/production/jdk8-study/jdk8/launcher/
+out/production/jdk8-study/test/arraylist/ArrayList.graffle
+src/my/
+src/test/.DS_Store
+src/test/arraylist/.DS_Store
+src/test/arraylist/ArrayList.png

@@ -43,7 +43,7 @@ package java.lang;
  * as the target.  In most cases, the <code>Runnable</code> interface should
  * be used if you are only planning to override the <code>run()</code>
  * method and no other <code>Thread</code> methods.
- * This is important because classes should not be subclassed
+ * This is important because classes should not be subclassed // 尽量优先使用实现Runnable接口的方式创建线程 不要使用继承Thread的方式 java是单根继承
  * unless the programmer intends on modifying or enhancing the fundamental
  * behavior of the class.
  *
@@ -52,11 +52,11 @@ package java.lang;
  * @see     java.util.concurrent.Callable
  * @since   JDK1.0
  */
-@FunctionalInterface
+@FunctionalInterface // 函数式接口
 public interface Runnable {
     /**
      * When an object implementing interface <code>Runnable</code> is used
-     * to create a thread, starting the thread causes the object's
+     * to create a thread, starting the thread causes the object's // 启动线程可以触发run方法的执行
      * <code>run</code> method to be called in that separately executing
      * thread.
      * <p>
