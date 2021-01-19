@@ -682,7 +682,7 @@ class Thread implements Runnable {
      * Causes this thread to begin execution; the Java Virtual Machine
      * calls the <code>run</code> method of this thread.
      * <p>
-     * The result is that two threads are running concurrently: the
+     * The result is that two threads are running concurrently: the // start一旦执行就有两个线程同时执行 一个是调用start的线程 一个是线程里面调用run方法的线程
      * current thread (which returns from the call to the
      * <code>start</code> method) and the other thread (which executes its
      * <code>run</code> method).
@@ -728,7 +728,7 @@ class Thread implements Runnable {
         }
     }
 
-    private native void start0();
+    private native void start0(); // 真正的线程启动方法 是个本地方法 说明线程最终是由操作系统处理的
 
     /**
      * If this thread was constructed using a separate
