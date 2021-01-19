@@ -252,12 +252,12 @@ public class Object {
      * <p>
      * This method should only be called by a thread that is the owner
      * of this object's monitor. A thread becomes the owner of the
-     * object's monitor in one of three ways:
+     * object's monitor in one of three ways: // 以下3种方式获取对象的监视器锁
      * <ul>
-     * <li>By executing a synchronized instance method of that object.
-     * <li>By executing the body of a {@code synchronized} statement
+     * <li>By executing a synchronized instance method of that object. // synchronized修饰实例对象方法
+     * <li>By executing the body of a {@code synchronized} statement // synchronized修饰代码块
      *     that synchronizes on the object.
-     * <li>For objects of type {@code Class,} by executing a
+     * <li>For objects of type {@code Class,} by executing a // synchronized修饰的Class对象的静态方法
      *     synchronized static method of that class.
      * </ul>
      * <p>
@@ -306,16 +306,16 @@ public class Object {
      * place itself in the wait set for this object and then to relinquish
      * any and all synchronization claims on this object. Thread <var>T</var>
      * becomes disabled for thread scheduling purposes and lies dormant
-     * until one of four things happens:
+     * until one of four things happens: // 以下4种情况可以唤醒线程
      * <ul>
-     * <li>Some other thread invokes the {@code notify} method for this
+     * <li>Some other thread invokes the {@code notify} method for this // 某个线程执行了这个对象的notify方法 并且这个线程在对象的monitor锁竞争队列种胜出
      * object and thread <var>T</var> happens to be arbitrarily chosen as
      * the thread to be awakened.
-     * <li>Some other thread invokes the {@code notifyAll} method for this
+     * <li>Some other thread invokes the {@code notifyAll} method for this // 其他线程执行了这个对象的notifyAll方法
      * object.
-     * <li>Some other thread {@linkplain Thread#interrupt() interrupts}
+     * <li>Some other thread {@linkplain Thread#interrupt() interrupts} // 其他线程执行了interrupt方法
      * thread <var>T</var>.
-     * <li>The specified amount of real time has elapsed, more or less.  If
+     * <li>The specified amount of real time has elapsed, more or less.  If // 超过了超时时间
      * {@code timeout} is zero, however, then real time is not taken into
      * consideration and the thread simply waits until notified.
      * </ul>
@@ -483,7 +483,7 @@ public class Object {
      *         ... // Perform action appropriate to condition
      *     }
      * </pre>
-     * This method should only be called by a thread that is the owner
+     * This method should only be called by a thread that is the owner // 对象的wait方法只能被持有该对象monitor监视器锁的线程调用
      * of this object's monitor. See the {@code notify} method for a
      * description of the ways in which a thread can become the owner of
      * a monitor.

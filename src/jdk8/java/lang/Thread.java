@@ -285,7 +285,7 @@ class Thread implements Runnable {
      * Causes the currently executing thread to sleep (temporarily cease
      * execution) for the specified number of milliseconds, subject to
      * the precision and accuracy of system timers and schedulers. The thread
-     * does not lose ownership of any monitors.
+     * does not lose ownership of any monitors. // 线程sleep并不会失去对象的monitor监视器锁
      *
      * @param  millis
      *         the length of time to sleep in milliseconds
