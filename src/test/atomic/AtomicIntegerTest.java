@@ -1,4 +1,4 @@
-package test;
+package test.atomic;
 
 import org.junit.Test;
 
