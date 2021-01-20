@@ -1,4 +1,4 @@
-package test;
+package test.hashmap;
 
 import org.junit.Test;
 
@@ -24,15 +24,15 @@ public class ClassTest {
     public void test1() {
         D d = new D();
 
-        // class test.ClassTest$1
+        // class test.hashmap.ClassTest$1
         System.out.println(new A() {
         }.getClass());
 
-        // class test.ClassTest$2
+        // class test.hashmap.ClassTest$2
         System.out.println(new B() {
         }.getClass());
 
-        // class test.ClassTest$3
+        // class test.hashmap.ClassTest$3
         System.out.println(new Comparable<Object>() {
             @Override
             public int compareTo(Object o) {
@@ -40,10 +40,10 @@ public class ClassTest {
             }
         }.getClass());
 
-        // class test.ClassTest$D$1
+        // class test.hashmap.ClassTest$D$1
         System.out.println(d.c.getClass());
 
-        // class test.ClassTest$E
+        // class test.hashmap.ClassTest$E
         E e = new E();
         C e1 = e;
         System.out.println(e1.getClass());

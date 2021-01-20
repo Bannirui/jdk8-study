@@ -1,4 +1,4 @@
-package test;
+package test.hashmap;
 
 import org.junit.Test;
 
@@ -27,8 +27,8 @@ public class RawTypeTest {
         if (types != null) {
             for (Type type : types) {
                 if(type instanceof ParameterizedType){
-                    // interface test.RawTypeTest$IA
-                    // interface test.RawTypeTest$IC
+                    // interface test.hashmap.RawTypeTest$IA
+                    // interface test.hashmap.RawTypeTest$IC
                     System.out.println(((ParameterizedType) type).getRawType());
                 }
             }
