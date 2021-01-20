@@ -240,7 +240,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * by either of the constructors with arguments.
      * MUST be a power of two <= 1<<30.
      */
-    static final int MAXIMUM_CAPACITY = 1 << 30; // 容量上限2^30 即使构造方法入参的值大也只会取这个上限值
+    static final int MAXIMUM_CAPACITY = 1 << 30; // 容量上限(2^30-1) 即使构造方法入参的值大也只会取这个上限值
 
     /**
      * The load factor used when none specified in constructor.
@@ -567,14 +567,14 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     final Node<K,V> getNode(int hash, Object key) {
         Node<K,V>[] tab; Node<K,V> first, e; int n; K k;
         if ((tab = table) != null && (n = tab.length) > 0 && // 场景1：调用无参构造方法创建map之后直接get 因为无参构造方法只给loadFactor属性赋默认值0.75  table这个属性为null 也就是整个map是空的 直接返回null
-            (first = tab[(n - 1) & hash]) != null) {
+            (first = tab[(n - 1) & hash]) != null) { // entry数组的脚标出桶是有值的
             if (first.hash == hash && // always check first node
-                ((k = first.key) == key || (key != null && key.equals(k))))
+                ((k = first.key) == key || (key != null && key.equals(k)))) // 桶的第一个节点的hash和key都跟查找的一样 那么第一个节点就是要找的值
                 return first;
-            if ((e = first.next) != null) {
-                if (first instanceof TreeNode)
+            if ((e = first.next) != null) { // 桶的第一个元素还有后继节点 可能是树 也可能是链表
+                if (first instanceof TreeNode) // 如果是树 就按照树的查找方式
                     return ((TreeNode<K,V>)first).getTreeNode(hash, key);
-                do {
+                do { // 如果是链表 就按照链表的查找方式
                     if (e.hash == hash &&
                         ((k = e.key) == key || (key != null && key.equals(k))))
                         return e;
@@ -658,7 +658,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                 return oldValue;
             }
         }
-        ++modCount; // 为什么要记录操作次数呢 代码走到只有一种情况就是put键值对没有发生hash碰撞 就是说放的桶是空桶
+        ++modCount; // 为什么要记录操作次数呢 put节点属于结构性修改 用于迭代的时候维护fast-fail机制
         if (++size > threshold) // 新加进来的键值对用新的桶位 如果当前已经用完的桶数量==threshold 再加进来就会触发扩容
             resize(); // 触发扩容
         afterNodeInsertion(evict);
@@ -1373,7 +1373,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     private void readObject(java.io.ObjectInputStream s)
         throws IOException, ClassNotFoundException {
         // Read in the threshold (ignored), loadfactor, and any hidden stuff
-        s.defaultReadObject();
+        s.defaultReadObject(); // 这边读取非static 非transient修饰的属性
         reinitialize();
         if (loadFactor <= 0 || Float.isNaN(loadFactor))
             throw new InvalidObjectException("Illegal load factor: " +
@@ -1808,7 +1808,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         TreeNode<K,V> parent;  // red-black tree links
         TreeNode<K,V> left;
         TreeNode<K,V> right;
-        TreeNode<K,V> prev;    // needed to unlink next upon deletion
+        TreeNode<K,V> prev;    // needed to unlink next upon deletion 链表中前驱节点 删除的时候可以快速找到前驱节点
         boolean red;
         TreeNode(int hash, K key, V val, Node<K,V> next) {
             super(hash, key, val, next);
