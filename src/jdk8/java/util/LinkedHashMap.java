@@ -33,7 +33,7 @@ import java.io.IOException;
 /**
  * <p>Hash table and linked list implementation of the <tt>Map</tt> interface,
  * with predictable iteration order.  This implementation differs from
- * <tt>HashMap</tt> in that it maintains a doubly-linked list running through
+ * <tt>HashMap</tt> in that it maintains a doubly-linked list running through // todo 区别于HashMap：维护了双向链表 保证了顺序性
  * all of its entries.  This linked list defines the iteration ordering,
  * which is normally the order in which keys were inserted into the map
  * (<i>insertion-order</i>).  Note that insertion order is not affected
@@ -62,7 +62,7 @@ import java.io.IOException;
  * provided to create a linked hash map whose order of iteration is the order
  * in which its entries were last accessed, from least-recently accessed to
  * most-recently (<i>access-order</i>).  This kind of map is well-suited to
- * building LRU caches.  Invoking the {@code put}, {@code putIfAbsent},
+ * building LRU caches.  Invoking the {@code put}, {@code putIfAbsent}, // todo 适合开发LRU缓存
  * {@code get}, {@code getOrDefault}, {@code compute}, {@code computeIfAbsent},
  * {@code computeIfPresent}, or {@code merge} methods results
  * in an access to the corresponding entry (assuming it exists after the
@@ -78,7 +78,7 @@ import java.io.IOException;
  * impose a policy for removing stale mappings automatically when new mappings
  * are added to the map.
  *
- * <p>This class provides all of the optional <tt>Map</tt> operations, and
+ * <p>This class provides all of the optional <tt>Map</tt> operations, and // todo 跟Hashmap一样 支持null值
  * permits null elements.  Like <tt>HashMap</tt>, it provides constant-time
  * performance for the basic operations (<tt>add</tt>, <tt>contains</tt> and
  * <tt>remove</tt>), assuming the hash function disperses elements
@@ -90,11 +90,11 @@ import java.io.IOException;
  * is likely to be more expensive, requiring time proportional to its
  * <i>capacity</i>.
  *
- * <p>A linked hash map has two parameters that affect its performance:
+ * <p>A linked hash map has two parameters that affect its performance: // todo 跟HashMap一样 initial capacity和load factor两个属性会直接影响集合的性能
  * <i>initial capacity</i> and <i>load factor</i>.  They are defined precisely
  * as for <tt>HashMap</tt>.  Note, however, that the penalty for choosing an
  * excessively high value for initial capacity is less severe for this class
- * than for <tt>HashMap</tt>, as iteration times for this class are unaffected
+ * than for <tt>HashMap</tt>, as iteration times for this class are unaffected // todo 区别于hashMap 迭代的时间消耗不受容量大小影响 在HashMap中 如果容量太小 意味着单个桶的迭代时间可能会更长
  * by capacity.
  *
  * <p><strong>Note that this implementation is not synchronized.</strong>
@@ -107,12 +107,12 @@ import java.io.IOException;
  * {@link Collections#synchronizedMap Collections.synchronizedMap}
  * method.  This is best done at creation time, to prevent accidental
  * unsynchronized access to the map:<pre>
- *   Map m = Collections.synchronizedMap(new LinkedHashMap(...));</pre>
+ *   Map m = Collections.synchronizedMap(new LinkedHashMap(...));</pre> // todo 并发场景下的使用方式
  *
  * A structural modification is any operation that adds or deletes one or more
  * mappings or, in the case of access-ordered linked hash maps, affects
  * iteration order.  In insertion-ordered linked hash maps, merely changing
- * the value associated with a key that is already contained in the map is not
+ * the value associated with a key that is already contained in the map is not // todo 什么场景才会导致modCound变化呢 也就是结构性变化：增加key-value、删除key-value 仅仅改变value的值是不算结构性变化的
  * a structural modification.  <strong>In access-ordered linked hash maps,
  * merely querying the map with <tt>get</tt> is a structural modification.
  * </strong>)
@@ -190,23 +190,23 @@ public class LinkedHashMap<K,V>
      * HashMap.Node subclass for normal LinkedHashMap entries.
      */
     static class Entry<K,V> extends HashMap.Node<K,V> {
-        Entry<K,V> before, after;
+        Entry<K,V> before, after; // before after域用于存储双向链表的前驱 后继节点
         Entry(int hash, K key, V value, Node<K,V> next) {
-            super(hash, key, value, next);
+            super(hash, key, value, next); // next域用于单链表存储与桶中
         }
     }
 
     private static final long serialVersionUID = 3801124242820219131L;
 
     /**
-     * The head (eldest) of the doubly linked list.
+     * The head (eldest) of the doubly linked list. 对于一个双向链表 只要知道头节点跟尾节点就可以进行一切的操作
      */
-    transient LinkedHashMap.Entry<K,V> head;
+    transient LinkedHashMap.Entry<K,V> head; // 双向链表头节点 旧数据存在头节点
 
     /**
      * The tail (youngest) of the doubly linked list.
      */
-    transient LinkedHashMap.Entry<K,V> tail;
+    transient LinkedHashMap.Entry<K,V> tail; // 双向链表尾节点 新数据存在尾节点
 
     /**
      * The iteration ordering method for this linked hash map: <tt>true</tt>
@@ -214,7 +214,7 @@ public class LinkedHashMap<K,V>
      *
      * @serial
      */
-    final boolean accessOrder;
+    final boolean accessOrder; // 是否按访问顺序排序 false:按插入顺序存储元素 true:按访问顺序存储元素
 
     // internal utilities
 
@@ -280,7 +280,7 @@ public class LinkedHashMap<K,V>
         return t;
     }
 
-    void afterNodeRemoval(Node<K,V> e) { // unlink
+    void afterNodeRemoval(Node<K,V> e) { // unlink // 节点被删除之后调用的方法 这个方法做的事情就是将p节点从双向链表中拿掉
         LinkedHashMap.Entry<K,V> p =
             (LinkedHashMap.Entry<K,V>)e, b = p.before, a = p.after;
         p.before = p.after = null;
@@ -294,35 +294,35 @@ public class LinkedHashMap<K,V>
             a.before = b;
     }
 
-    void afterNodeInsertion(boolean evict) { // possibly remove eldest
+    void afterNodeInsertion(boolean evict) { // possibly remove eldest // 节点插入之后做什么 这个方法是覆写HashMap中的空实现
         LinkedHashMap.Entry<K,V> first;
-        if (evict && (first = head) != null && removeEldestEntry(first)) {
-            K key = first.key;
-            removeNode(hash(key), key, null, false, true);
+        if (evict && (first = head) != null && removeEldestEntry(first)) { // 满足这几个条件就将双向链表的头节点删除(双链表的头节点肯定是最早插入的节点 也就是说头节点的数组是最老的)：1，入参evit为true 2，双链表的头节点不为空 3，removeEldestEntry(first)删除最老节点方法返回true
+            K key = first.key; // 获取双向链表头节点的key值
+            removeNode(hash(key), key, null, false, true); // 调用父类hashmap中removeNode方法删除节点 删除的这个节点是双向链表的头节点
         }
     }
 
-    void afterNodeAccess(Node<K,V> e) { // move node to last
+    void afterNodeAccess(Node<K,V> e) { // move node to last // 节点被访问之后调用这个方法 什么时候这个方法会被触发：put已经存在的元素、get元素 如果accessOrder为true 就把刚访问过的这个节点挂到tail尾节点上 也就是说在满足条件的情况下 永远保持被访问的元素在尾节点
         LinkedHashMap.Entry<K,V> last;
-        if (accessOrder && (last = tail) != e) {
+        if (accessOrder && (last = tail) != e) { // 第一个条件：accessOrder为true 也就是按照访问顺序排序 第二个条件：双向链表的尾节点不等于当前访问的节点
             LinkedHashMap.Entry<K,V> p =
-                (LinkedHashMap.Entry<K,V>)e, b = p.before, a = p.after;
-            p.after = null;
+                (LinkedHashMap.Entry<K,V>)e, b = p.before, a = p.after; // 现在的情况是 b->p->a
+            p.after = null; // 先把p的后继引用干掉 指向null
             if (b == null)
-                head = a;
+                head = a; // 如果b是null 那说明p没有前驱节点 p就是这个双向链表的头节点:p-a->..... 把a指向头节点:a->...
             else
-                b.after = a;
+                b.after = a; // 如果b不是null 在这个双向链表中b的角色可能是头节点:b->p->a->...  也可能是中间某一个节点:head->...->b->p->a->... 把b的后继引用指向a 就相当于:..->b->a->...
             if (a != null)
-                a.before = b;
+                a.before = b; // 如果a不为null 把a的前驱指向b:b->a
             else
-                last = b;
+                last = b; // 如果a等于null 把b指向last 代码到这为止 还没有动到双向链表的结构 模拟一下：b->p->a 第一种情况：null->p->null => head=p tail=p 第二种情况：null->p->a => head=a tail=p 第三种情况：b->p->null => head->...->b->null tail=p 第四种情况：b->p->a => head->...->b->a->... tail=p
             if (last == null)
                 head = p;
             else {
                 p.before = last;
                 last.after = p;
             }
-            tail = p;
+            tail = p; // 说白了这个方法的作用就是将当前访问的节点挂到tail节点上作为尾节点 把双向链表的节点移动到末尾
             ++modCount;
         }
     }
@@ -344,8 +344,8 @@ public class LinkedHashMap<K,V>
      *         or the load factor is nonpositive
      */
     public LinkedHashMap(int initialCapacity, float loadFactor) {
-        super(initialCapacity, loadFactor);
-        accessOrder = false;
+        super(initialCapacity, loadFactor); // 调用HashMap的构造方法 赋值loadFactor为指定参数大小 threshold为大于等于initialCapacity的最小的2的幂次方的大小
+        accessOrder = false; // 双向链表按照插入顺序存储元素
     }
 
     /**
@@ -356,8 +356,8 @@ public class LinkedHashMap<K,V>
      * @throws IllegalArgumentException if the initial capacity is negative
      */
     public LinkedHashMap(int initialCapacity) {
-        super(initialCapacity);
-        accessOrder = false;
+        super(initialCapacity); // 调用HashMap的构造方法 赋值loadFactor为默认值0.75 threshold为大于等于initialCapacity的最小的2的幂次方的大小
+        accessOrder = false; // 双向链表按照插入顺序存储元素
     }
 
     /**
@@ -365,8 +365,8 @@ public class LinkedHashMap<K,V>
      * with the default initial capacity (16) and load factor (0.75).
      */
     public LinkedHashMap() {
-        super();
-        accessOrder = false;
+        super(); // 调用HashMap的无参构造方法 loadFactor赋值为默认值0.75
+        accessOrder = false; // 双向链表按照插入顺序存储元素
     }
 
     /**
@@ -379,9 +379,9 @@ public class LinkedHashMap<K,V>
      * @throws NullPointerException if the specified map is null
      */
     public LinkedHashMap(Map<? extends K, ? extends V> m) {
-        super();
-        accessOrder = false;
-        putMapEntries(m, false);
+        super(); // 调用HashMap的无参构造方法 loadFactor赋值为默认值0.75
+        accessOrder = false; // 双向链表按照插入顺序存储元素
+        putMapEntries(m, false); // 这个方法和hashMap中基本一致
     }
 
     /**
@@ -398,8 +398,8 @@ public class LinkedHashMap<K,V>
     public LinkedHashMap(int initialCapacity,
                          float loadFactor,
                          boolean accessOrder) {
-        super(initialCapacity, loadFactor);
-        this.accessOrder = accessOrder;
+        super(initialCapacity, loadFactor); // 调用HashMap的构造方法 赋值loadFactor为指定参数大小 threshold为大于等于initialCapacity的最小的2的幂次方的大小
+        this.accessOrder = accessOrder; // 双向链表的元素存储顺序由客户端决定 false:按插入顺序存储元素 true:按访问顺序存储元素->实现LRU的关键
     }
 
 
@@ -439,8 +439,8 @@ public class LinkedHashMap<K,V>
         Node<K,V> e;
         if ((e = getNode(hash(key), key)) == null)
             return null;
-        if (accessOrder)
-            afterNodeAccess(e);
+        if (accessOrder) // 如果accessOrder为true 就按照访问元素顺序排序
+            afterNodeAccess(e); // 把当前访问的节点挪到tail上作为尾节点
         return e.value;
     }
 
