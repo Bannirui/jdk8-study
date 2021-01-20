@@ -1,6 +1,7 @@
 package test.concurrent;
 
 import org.junit.Test;
+import org.junit.validator.PublicClassValidator;
 
 /**
  *@author dingrui
@@ -34,11 +35,35 @@ public class WaitNotifyTest {
         o.wait();
     }
 
+    /**
+     * @author dingrui
+     * @date 2021/1/20
+     * @return
+     * @description 通过synchronized关键字获取对象的监视器锁 然后调用该对象的wait方法
+     */
     @Test
     public void test2() throws InterruptedException {
         Object o = new Object();
         synchronized (o) {
             o.wait();
         }
+    }
+
+
+    /**
+     * @author dingrui
+     * @date 2021/1/20
+     * @param args
+     * @return
+     * @description 测试wait和notify
+     */
+    public static void main(String[] args) {
+        IncreaseAndDecrease increaseAndDecrease  = new IncreaseAndDecrease();
+
+        IncreaseThread increaseThread = new IncreaseThread(increaseAndDecrease);
+        DecreaseThread decreaseThread = new DecreaseThread(increaseAndDecrease);
+
+        increaseThread.start();
+        decreaseThread.start();
     }
 }
