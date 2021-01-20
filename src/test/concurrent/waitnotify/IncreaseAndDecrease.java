@@ -1,4 +1,4 @@
-package test.concurrent;
+package test.concurrent.waitnotify;
 
 /**
  *@author dingrui

@@ -1,7 +1,9 @@
-package test.concurrent;
+package test.concurrent.waitnotify;
 
 import org.junit.Test;
-import org.junit.validator.PublicClassValidator;
+import test.concurrent.waitnotify.DecreaseThread;
+import test.concurrent.waitnotify.IncreaseAndDecrease;
+import test.concurrent.waitnotify.IncreaseThread;
 
 /**
  *@author dingrui
