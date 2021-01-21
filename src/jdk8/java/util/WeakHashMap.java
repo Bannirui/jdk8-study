@@ -140,44 +140,44 @@ public class WeakHashMap<K,V>
     /**
      * The default initial capacity -- MUST be a power of two.
      */
-    private static final int DEFAULT_INITIAL_CAPACITY = 16;
+    private static final int DEFAULT_INITIAL_CAPACITY = 16; // 默认初始容量大小16 跟HashMap一样容量大小是2的幂次方
 
     /**
      * The maximum capacity, used if a higher value is implicitly specified
      * by either of the constructors with arguments.
      * MUST be a power of two <= 1<<30.
      */
-    private static final int MAXIMUM_CAPACITY = 1 << 30;
+    private static final int MAXIMUM_CAPACITY = 1 << 30; // 最大容量2^30
 
     /**
      * The load factor used when none specified in constructor.
      */
-    private static final float DEFAULT_LOAD_FACTOR = 0.75f;
+    private static final float DEFAULT_LOAD_FACTOR = 0.75f; // 跟HashMap一样 默认加载因子大小0.75
 
     /**
      * The table, resized as necessary. Length MUST Always be a power of two.
      */
-    Entry<K,V>[] table;
+    Entry<K,V>[] table; // 桶数组
 
     /**
      * The number of key-value mappings contained in this weak hash map.
      */
-    private int size;
+    private int size; // 元素个数
 
     /**
      * The next size value at which to resize (capacity * load factor).
      */
-    private int threshold;
+    private int threshold; // 扩容阈值
 
     /**
      * The load factor for the hash table.
      */
-    private final float loadFactor;
+    private final float loadFactor; // 加载因子
 
     /**
      * Reference queue for cleared WeakEntries
      */
-    private final ReferenceQueue<Object> queue = new ReferenceQueue<>();
+    private final ReferenceQueue<Object> queue = new ReferenceQueue<>(); // 引用队列 当弱键失效的时候将Entry添加到这个队列中 当下次访问map的时候会把失效的Entry清除掉
 
     /**
      * The number of times this WeakHashMap has been structurally modified.
@@ -263,7 +263,7 @@ public class WeakHashMap<K,V>
     /**
      * Value representing null keys inside tables.
      */
-    private static final Object NULL_KEY = new Object();
+    private static final Object NULL_KEY = new Object(); // null作为key 对null的封装
 
     /**
      * Use NULL_KEY for key if it is null.
@@ -294,7 +294,7 @@ public class WeakHashMap<K,V>
      * otherwise encounter collisions for hashCodes that do not differ
      * in lower bits.
      */
-    final int hash(Object k) {
+    final int hash(Object k) { // 跟HashMap中的hash计算方式不一样 HashMap中只将hashCode右移16位1次求异或 这儿右移了4次 根本原因是：HashMap中底层数据结构是数据+链表+红黑树 即使hsh碰撞厉害也保证了get、put的性能 但是WeakHashMap底层数据结构只有数组+链表 必须要在hashCode的计算上降低hash碰撞的几率
         int h = k.hashCode();
 
         // This function ensures that hashCodes that differ only by
@@ -308,28 +308,28 @@ public class WeakHashMap<K,V>
      * Returns index for hash code h.
      */
     private static int indexFor(int h, int length) {
-        return h & (length-1);
+        return h & (length-1); // 跟HashMap中一样 因为底层数组的长度是2的幂次方 直接使用hashCode&(length-1)就是脚标索引
     }
 
     /**
-     * Expunges stale entries from the table.
+     * Expunges stale entries from the table. 清除失效的Entry
      */
-    private void expungeStaleEntries() {
-        for (Object x; (x = queue.poll()) != null; ) {
-            synchronized (queue) {
+    private void expungeStaleEntries() { // 当key失效的时候gc会自动把Entry添加到这个队列中 既然queue队列中保存的都是要清除的Entry 就遍历队列 把Entry从map中移除
+        for (Object x; (x = queue.poll()) != null; ) { // 遍历队列
+            synchronized (queue) { // todo 这个地方为啥要加锁
                 @SuppressWarnings("unchecked")
                     Entry<K,V> e = (Entry<K,V>) x;
-                int i = indexFor(e.hash, table.length);
+                int i = indexFor(e.hash, table.length); // 桶数组对应的脚标
 
-                Entry<K,V> prev = table[i];
-                Entry<K,V> p = prev;
+                Entry<K,V> prev = table[i]; // 单链表移除节点 通过pre指针指向遍历过程中的当前节点的前一个节点
+                Entry<K,V> p = prev; // p节点就是单链表遍历过程中移动的节点指针
                 while (p != null) {
                     Entry<K,V> next = p.next;
-                    if (p == e) {
-                        if (prev == e)
-                            table[i] = next;
-                        else
-                            prev.next = next;
+                    if (p == e) { // 找到了要清除的节点
+                        if (prev == e) // 要清除的这个节点是个头节点
+                            table[i] = next; // 移除这个头节点
+                        else // 要清除的这个节点不是头节点
+                            prev.next = next; // 移除这个节点
                         // Must not null out e.next;
                         // stale entries may be in use by a HashIterator
                         e.value = null; // Help GC
@@ -347,7 +347,7 @@ public class WeakHashMap<K,V>
      * Returns the table after first expunging stale entries.
      */
     private Entry<K,V>[] getTable() {
-        expungeStaleEntries();
+        expungeStaleEntries(); // 清除失效key
         return table;
     }
 
@@ -392,12 +392,12 @@ public class WeakHashMap<K,V>
      * @see #put(Object, Object)
      */
     public V get(Object key) {
-        Object k = maskNull(key);
-        int h = hash(k);
-        Entry<K,V>[] tab = getTable();
-        int index = indexFor(h, tab.length);
+        Object k = maskNull(key); // 判断key是否是null
+        int h = hash(k); // 计算key的hash值
+        Entry<K,V>[] tab = getTable(); // 获取桶数组
+        int index = indexFor(h, tab.length); // 根据key的hash值定位到桶数组脚标
         Entry<K,V> e = tab[index];
-        while (e != null) {
+        while (e != null) { // 遍历链表
             if (e.hash == h && eq(k, e.get()))
                 return e.value;
             e = e.next;
@@ -445,12 +445,12 @@ public class WeakHashMap<K,V>
      *         previously associated <tt>null</tt> with <tt>key</tt>.)
      */
     public V put(K key, V value) {
-        Object k = maskNull(key);
-        int h = hash(k);
-        Entry<K,V>[] tab = getTable();
-        int i = indexFor(h, tab.length);
+        Object k = maskNull(key); // 判断key是不是null 如果是null的化不直接使用null 而是使用特定的null-key
+        int h = hash(k); // 计算hash
+        Entry<K,V>[] tab = getTable(); // entry数组
+        int i = indexFor(h, tab.length); // 获取entry数组的脚标索引
 
-        for (Entry<K,V> e = tab[i]; e != null; e = e.next) {
+        for (Entry<K,V> e = tab[i]; e != null; e = e.next) { // 在put的时候发生hash冲突 说明这个key已经存在 替换掉value值就行 WeakHashMap的底层数据结构数组+链表 遍历链表找这个key对应value替换掉
             if (h == e.hash && eq(k, e.get())) {
                 V oldValue = e.value;
                 if (value != oldValue)
@@ -459,11 +459,11 @@ public class WeakHashMap<K,V>
             }
         }
 
-        modCount++;
-        Entry<K,V> e = tab[i];
-        tab[i] = new Entry<>(k, value, queue, h, e);
-        if (++size >= threshold)
-            resize(tab.length * 2);
+        modCount++; // 代码走到这 说明两种情况：1，put没有发生hash冲突 这个map是首次加进来 new一个Entry节点放到桶数组对应的脚标处 2，发生了hash碰撞 但是没有存在一样的key 不是覆盖老值 碰撞的链表采用头插法 记录modCount
+        Entry<K,V> e = tab[i]; // 对应上面的两种情况 这个e要么是null 要么是个链表
+        tab[i] = new Entry<>(k, value, queue, h, e); // 从这个地方可以看出来如果put发生了hash碰撞的化新增的key-value是链表头插法
+        if (++size >= threshold) // 判断新加进来这个节点之后是否触发扩容 这个地方的扩容条件是size>=threshold
+            resize(tab.length * 2); // 扩容 跟HashMap一样容量加倍
         return null;
     }
 
@@ -482,45 +482,45 @@ public class WeakHashMap<K,V>
      *        is irrelevant).
      */
     void resize(int newCapacity) {
-        Entry<K,V>[] oldTable = getTable();
-        int oldCapacity = oldTable.length;
-        if (oldCapacity == MAXIMUM_CAPACITY) {
+        Entry<K,V>[] oldTable = getTable(); // 旧桶
+        int oldCapacity = oldTable.length; // 就桶容量
+        if (oldCapacity == MAXIMUM_CAPACITY) { // 如果旧桶已经达到了容量上限 扩容阈值threshold就不是按照capacity*loadfactor了 直接赋值Integer的上限 也就是再也不会触发扩容了
             threshold = Integer.MAX_VALUE;
             return;
         }
 
-        Entry<K,V>[] newTable = newTable(newCapacity);
-        transfer(oldTable, newTable);
-        table = newTable;
+        Entry<K,V>[] newTable = newTable(newCapacity); // 创建一个容量是旧桶两倍的新桶
+        transfer(oldTable, newTable); // 旧桶数据转移到新桶
+        table = newTable; // 将新桶赋值给table属性
 
         /*
          * If ignoring null elements and processing ref queue caused massive
          * shrinkage, then restore old table.  This should be rare, but avoids
          * unbounded expansion of garbage-filled tables.
          */
-        if (size >= threshold / 2) {
-            threshold = (int)(newCapacity * loadFactor);
-        } else {
+        if (size >= threshold / 2) { // 这个地方就是个骚操作 因为在上面#transfer过程中会清除旧桶中的失效Entry 真正存储的元素数量size可能就变少了 size >= threshold / 2以这个为条件 如果成立的话 就使用新桶
+            threshold = (int)(newCapacity * loadFactor); // 使用新桶 这个扩容阈值也就水涨船高了
+        } else { // 判断条件不成立 也就意味着在transfer过程中至少清除了当时旧桶中一半数量的Entry 也就是说清除了大半的Entry 现在旧桶容量已经不那么紧张了 不需要扩容了 继续使用旧桶
             expungeStaleEntries();
-            transfer(newTable, oldTable);
-            table = oldTable;
+            transfer(newTable, oldTable); // 再将新桶中的元素转移回旧桶
+            table = oldTable; // 还是继续使用旧桶
         }
     }
 
     /** Transfers all entries from src to dest tables */
-    private void transfer(Entry<K,V>[] src, Entry<K,V>[] dest) {
+    private void transfer(Entry<K,V>[] src, Entry<K,V>[] dest) { // 新旧桶之间元素的转移
         for (int j = 0; j < src.length; ++j) {
             Entry<K,V> e = src[j];
             src[j] = null;
-            while (e != null) {
+            while (e != null) { // 标准的单链表遍历
                 Entry<K,V> next = e.next;
                 Object key = e.get();
-                if (key == null) {
+                if (key == null) { // 如果key是null 说明key被gc清理了 把这个key对应的Entry都置null清除
                     e.next = null;  // Help GC
                     e.value = null; //  "   "
                     size--;
                 } else {
-                    int i = indexFor(e.hash, dest.length);
+                    int i = indexFor(e.hash, dest.length); // 找到新桶的脚标 采用的是链表头插法
                     e.next = dest[i];
                     dest[i] = e;
                 }
@@ -587,29 +587,29 @@ public class WeakHashMap<K,V>
      *         <tt>null</tt> if there was no mapping for <tt>key</tt>
      */
     public V remove(Object key) {
-        Object k = maskNull(key);
-        int h = hash(k);
-        Entry<K,V>[] tab = getTable();
-        int i = indexFor(h, tab.length);
-        Entry<K,V> prev = tab[i];
+        Object k = maskNull(key); // 判断key是否是null
+        int h = hash(k); // 计算key的hash值
+        Entry<K,V>[] tab = getTable(); // 获取桶数组
+        int i = indexFor(h, tab.length); // 根据key的hash值定位到桶数组的脚标索引
+        Entry<K,V> prev = tab[i]; // Entry节点 可能有如下情况：是null 单个Entry节点(next为null) 一个链表
         Entry<K,V> e = prev;
 
-        while (e != null) {
+        while (e != null) { // e不会null 就遍历链表 e是链表遍历过程中移动的指针 pre是e的前一个节点 因为这个单链表不是双向链表 所以单独维护一个pre指针
             Entry<K,V> next = e.next;
-            if (h == e.hash && eq(k, e.get())) {
+            if (h == e.hash && eq(k, e.get())) { // 说明找到了要删除的元素
                 modCount++;
                 size--;
-                if (prev == e)
-                    tab[i] = next;
-                else
-                    prev.next = next;
+                if (prev == e) // 找到的这个要删除的元素是链表头节点
+                    tab[i] = next; // 删除链表头节点
+                else // 找到的这个要删除的元素不是链表头节点
+                    prev.next = next; // 删除这个节点
                 return e.value;
             }
-            prev = e;
+            prev = e; // 前一个节点和当前节点都后移
             e = next;
         }
 
-        return null;
+        return null; // e是null就直接返回null
     }
 
     /** Special version of remove needed by Entry set */
@@ -699,7 +699,7 @@ public class WeakHashMap<K,V>
      * The entries in this hash table extend WeakReference, using its main ref
      * field as the key.
      */
-    private static class Entry<K,V> extends WeakReference<Object> implements Map.Entry<K,V> {
+    private static class Entry<K,V> extends WeakReference<Object> implements Map.Entry<K,V> { // 没有key属性 因为key是作为弱引用存储到父类Reference中的
         V value;
         final int hash;
         Entry<K,V> next;
@@ -710,7 +710,7 @@ public class WeakHashMap<K,V>
         Entry(Object key, V value,
               ReferenceQueue<Object> queue,
               int hash, Entry<K,V> next) {
-            super(key, queue);
+            super(key, queue); // 调用父类WeakReference的构造方法->调用父类Reference的构造方法 初始化key和引用队列
             this.value = value;
             this.hash  = hash;
             this.next  = next;
