@@ -569,7 +569,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
      * excessive memory contention.  The value should be at least
      * DEFAULT_CAPACITY.
      */
-    private static final int MIN_TRANSFER_STRIDE = 16;
+    private static final int MIN_TRANSFER_STRIDE = 16; // 数据迁移的时候一个线程处理多少个桶 默认值
 
     /**
      * The number of bits used for generation stamp in sizeCtl.
@@ -581,7 +581,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
      * The maximum number of threads that can help resize.
      * Must fit in 32 - RESIZE_STAMP_BITS bits.
      */
-    private static final int MAX_RESIZERS = (1 << (32 - RESIZE_STAMP_BITS)) - 1;
+    private static final int MAX_RESIZERS = (1 << (32 - RESIZE_STAMP_BITS)) - 1; // 最大扩容线程数
 
     /**
      * The bit shift for recording size stamp in sizeCtl.
@@ -597,7 +597,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     static final int HASH_BITS = 0x7fffffff; // usable bits of normal node hash // 0111 1111 1111 1111 1111 1111 1111 1111 是int的最大值 所有的hash值再与上这个数字 保证所有的hashCode是正数 为什么hash值要消除负数 因为内置了MOVED、TREEBIN、RESERVED这三个hash值的负数表示 避免冲突
 
     /** Number of CPUS, to place bounds on some sizings */
-    static final int NCPU = Runtime.getRuntime().availableProcessors();
+    static final int NCPU = Runtime.getRuntime().availableProcessors(); // 当前计算机的cpu核数
 
     /** For serialization compatibility. */
     private static final ObjectStreamField[] serialPersistentFields = {
@@ -1007,8 +1007,8 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     }
 
     /** Implementation for put and putIfAbsent */
-    final V putVal(K key, V value, boolean onlyIfAbsent) {
-        if (key == null || value == null) throw new NullPointerException(); // 跟HM不同的地方 CHM中key和value都不能是null
+    final V putVal(K key, V value, boolean onlyIfAbsent) { // onlyIfAbsent是false的话会对老value替换 true的话不对老value替换
+        if (key == null || value == null) throw new NullPointerException(); // 跟HM不同的地方 CHM中key和value都不能是null 如果CHM支持null key和value那么在对线程场景下返回null值具有二义性
         int hash = spread(key.hashCode()); // 计算hash值
         int binCount = 0; // 要插入的元素所在桶中链表中节点数量
         for (Node<K,V>[] tab = table;;) { // 这就是一个死循环
@@ -1027,8 +1027,8 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                 synchronized (f) { // 加锁对象f是桶中的第一个元素
                     if (tabAt(tab, i) == f) { // 再次对桶中的第一个元素进行检测是否发生变化 如果有变化 就直接进入了for死循环的下一次循环
                         if (fh >= 0) { // fh是桶中第一个元素的hash值 hash值>=0 说明没有元素迁移 也不是树结构 那就说明桶中的元素只能是单链表结构
-                            binCount = 1; // 桶中元素个数赋值1
-                            for (Node<K,V> e = f;; ++binCount) { // 遍历链表 每结束一次for循环 桶中元素的个数就加1
+                            binCount = 1; // 桶中放的是链表 现在在这个链表的头节点上 元素个数赋值1
+                            for (Node<K,V> e = f;; ++binCount) { // 一个死循环 遍历链表 每结束一次for循环 桶中元素的个数就加1 相当于统计链表中元素的个数
                                 K ek;
                                 if (e.hash == hash &&
                                     ((ek = e.key) == key ||
@@ -1079,7 +1079,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
      * @param m mappings to be stored in this map
      */
     public void putAll(Map<? extends K, ? extends V> m) {
-        tryPresize(m.size());
+        tryPresize(m.size()); // 传进去的参数是集合的size(桶数量)
         for (Map.Entry<? extends K, ? extends V> e : m.entrySet())
             putVal(e.getKey(), e.getValue(), false);
     }
@@ -2270,7 +2270,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                 return;
             s = sumCount(); // 计算元素个数
         }
-        if (check >= 0) {
+        if (check >= 0) { // 标志位 控制是否检查桶数组是否需要进行扩容
             Node<K,V>[] tab, nt; int n, sc;
             while (s >= (long)(sc = sizeCtl) && (tab = table) != null &&
                    (n = tab.length) < MAXIMUM_CAPACITY) { // 如果元素个数达到了扩容门槛，则进行扩容
@@ -2319,42 +2319,42 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
      *
      * @param size number of elements (doesn't need to be perfectly accurate)
      */
-    private final void tryPresize(int size) {
+    private final void tryPresize(int size) { // 调用这个方法的场景就2个：第一种情况是树化treeifyBin(Node<K,V>[] tab, int index)过程中调用 传进来的参数size在传进来之前就已经翻倍过了 第二种情况是：调用putAll(map)方法传进去的集合map的已经使用的桶数量
         int c = (size >= (MAXIMUM_CAPACITY >>> 1)) ? MAXIMUM_CAPACITY :
-            tableSizeFor(size + (size >>> 1) + 1);
+            tableSizeFor(size + (size >>> 1) + 1); // 构造方法ConcurrentHashMap(Map<? extends K, ? extends V> m)进来的时候 sizeCtl被赋值默认值16 todo 不要纠结这个判断条件 在jdk11中已经修复 改成了tableSizeFor(size)
         int sc;
-        while ((sc = sizeCtl) >= 0) {
+        while ((sc = sizeCtl) >= 0) { // 用sc=sizeCtl>=0作为while条件 那么肯定是通过break去跳出循环 而不是sizeCtl的值了 sizeCtl这个值构造方法即使不进行初始化 也就是默认值0 一定能进while这个循环
             Node<K,V>[] tab = table; int n;
-            if (tab == null || (n = tab.length) == 0) {
-                n = (sc > c) ? sc : c;
-                if (U.compareAndSwapInt(this, SIZECTL, sc, -1)) {
+            if (tab == null || (n = tab.length) == 0) { // 第一次循环：此刻entry数组还是null 相当于做的是桶数组的初始化 第二次循环：不进这个分支
+                n = (sc > c) ? sc : c; // sc是sizeCtl的默认值 c是根据传进来的集合的长度求出来的tableSizeFor 二者之间取较大值
+                if (U.compareAndSwapInt(this, SIZECTL, sc, -1)) { // 尝试cas更新sizeCtl从sc(16)变成-1 sizeCtl等于-1表示有一个线程正在进行初始化
                     try {
-                        if (table == tab) {
+                        if (table == tab) { // 再次校验桶数组 保证没有被其他线程修改过
                             @SuppressWarnings("unchecked")
-                            Node<K,V>[] nt = (Node<K,V>[])new Node<?,?>[n];
-                            table = nt;
-                            sc = n - (n >>> 2);
+                            Node<K,V>[] nt = (Node<K,V>[])new Node<?,?>[n]; // 根据需求的容量n new一个桶数组
+                            table = nt; // new出来的桶数据赋值给table
+                            sc = n - (n >>> 2); // sc=0.75n 更新扩容阈值
                         }
                     } finally {
-                        sizeCtl = sc;
+                        sizeCtl = sc; // 再把更新之后的扩容阈值赋值给sizeCtl
                     }
                 }
             }
-            else if (c <= sc || n >= MAXIMUM_CAPACITY)
+            else if (c <= sc || n >= MAXIMUM_CAPACITY) // 当前的桶数组容量已经到达上限 没法再进行扩容过了
                 break;
-            else if (tab == table) {
-                int rs = resizeStamp(n);
-                if (sc < 0) {
-                    Node<K,V>[] nt;
+            else if (tab == table) { // 多线程环境下 所以要再进行一次校验参数 如果tab==table说明还没有开始迁移节点
+                int rs = resizeStamp(n); // 生成表的生成戳，每个n都有不同的生成戳 是一个很大的负值
+                if (sc < 0) { // sc小于0代表 要么有一个线程在进行初始化 要么有多个线程在进行数据迁移
+                    Node<K,V>[] nt; // 下面5个判断 1，第一个判断 sc右移RESIZE_STAMP_SHIFT位，也就是比较高ESIZE_STAMP_BITS位生成戳和rs是否相等 相等则代表是同一个n，是在同一容量下进行的扩容 2，第二个和第三个判断 判断当前帮助扩容线程数是否已达到MAX_RESIZERS最大扩容线程数 3，第四个和第五个判断 为了确保transfer()方法初始化完毕
                     if ((sc >>> RESIZE_STAMP_SHIFT) != rs || sc == rs + 1 ||
                         sc == rs + MAX_RESIZERS || (nt = nextTable) == null ||
                         transferIndex <= 0)
                         break;
-                    if (U.compareAndSwapInt(this, SIZECTL, sc, sc + 1))
+                    if (U.compareAndSwapInt(this, SIZECTL, sc, sc + 1)) // 这个地方就会将sizeCtl数值加1表示有n个线程同时进行数据迁移
                         transfer(tab, nt);
                 }
                 else if (U.compareAndSwapInt(this, SIZECTL, sc,
-                                             (rs << RESIZE_STAMP_SHIFT) + 2))
+                                             (rs << RESIZE_STAMP_SHIFT) + 2)) // 如果没有线程在进行扩容，那么cas修改sizeCtl值，作为扩容的发起，rs左移RESIZE_STAMP_SHIFT位+2 左移RESIZE_STAMP_SHIFT位，肯定是个负数，代表有一个线程正在进行扩容 此时sizeCtl高RESIZE_STAMP_BITS位为生成戳，低RESIZE_STAMP_SHIFT位为扩容线程数
                     transfer(tab, null);
             }
         }
@@ -2365,90 +2365,90 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
      * above for explanation.
      */
     private final void transfer(Node<K,V>[] tab, Node<K,V>[] nextTab) { // 扩容时容量变为两倍，并把部分元素迁移到其它桶中
-        int n = tab.length, stride;
-        if ((stride = (NCPU > 1) ? (n >>> 3) / NCPU : n) < MIN_TRANSFER_STRIDE)
-            stride = MIN_TRANSFER_STRIDE; // subdivide range
+        int n = tab.length, stride; // stride表示一个线程处理多少个桶
+        if ((stride = (NCPU > 1) ? (n >>> 3) / NCPU : n) < MIN_TRANSFER_STRIDE) // 比如NCPU=1 那么stride=n 如果此时n<16 那么stride被赋值16
+            stride = MIN_TRANSFER_STRIDE; // subdivide range // 数据迁移的时候一个线程处理多少个桶 默认值 这个if分支做的事情就是保证多个线程处理的桶数量一样 并且一个线程最少处理16个桶
         if (nextTab == null) {            // initiating // 如果nextTab为空，说明还没开始迁移 就创建一个新桶数组
             try {
                 @SuppressWarnings("unchecked")
                 Node<K,V>[] nt = (Node<K,V>[])new Node<?,?>[n << 1]; // 新桶数组是原桶的两倍
                 nextTab = nt;
             } catch (Throwable ex) {      // try to cope with OOME
-                sizeCtl = Integer.MAX_VALUE;
+                sizeCtl = Integer.MAX_VALUE; // 扩容失败 sc使用int的最大值
                 return;
             }
-            nextTable = nextTab;
-            transferIndex = n;
+            nextTable = nextTab; // 更新成员变量
+            transferIndex = n; // 更新转移下标，就是老的tab的length
         }
         int nextn = nextTab.length; // 新桶数组大小
-        ForwardingNode<K,V> fwd = new ForwardingNode<K,V>(nextTab); // 新建一个ForwardingNode类型的节点，并把新桶数组存储在里面
-        boolean advance = true;
-        boolean finishing = false; // to ensure sweep before committing nextTab
-        for (int i = 0, bound = 0;;) {
+        ForwardingNode<K,V> fwd = new ForwardingNode<K,V>(nextTab); // 新建一个ForwardingNode类型的节点 fwd 当别的线程发现这个槽位中是fwd类型的节点 则跳过这个节点
+        boolean advance = true; // 首次推进为 true，如果等于 true，说明需要再次推进一个下标（i--），反之，如果是 false，那么就不能推进下标，需要将当前的下标处理完毕才能继续推进
+        boolean finishing = false; // to ensure sweep before committing nextTab // 完成状态，如果是 true，就结束此方法
+        for (int i = 0, bound = 0;;) { // 死循环,i 表示下标，bound 表示当前线程可以处理的当前桶区间最小下标
             Node<K,V> f; int fh;
-            while (advance) { // 整个while循环就是在算i的值，过程太复杂 i的值会从n-1依次递减 其中n是旧桶数组的大小，也就是说i从15开始一直减到1这样去迁移元素
+            while (advance) { // 如果当前线程可以向后推进；这个循环就是控制 i 递减。同时，每个线程都会进入这里取得自己需要转移的桶的区间
                 int nextIndex, nextBound;
-                if (--i >= bound || finishing)
-                    advance = false;
-                else if ((nextIndex = transferIndex) <= 0) {
-                    i = -1;
+                if (--i >= bound || finishing) // 对i减一 判断是否大于等于bound（正常情况下，如果大于bound不成立，说明该线程上次领取的任务已经完成了。那么，需要在下面继续领取任务）如果对i减一大于等于 bound（还需要继续做任务），或者完成了，修改推进状态为false，不能推进了。任务成功后修改推进状态为true。 通常，第一次进入循环，i--这个判断会无法通过，从而走下面的nextIndex赋值操作（获取最新的转移下标）。其余情况都是：如果可以推进，将i减一，然后修改成不可推进。如果i对应的桶处理成功了，改成可以推进
+                    advance = false; // 这里设置 false，是为了防止在没有成功处理一个桶的情况下却进行了推进
+                else if ((nextIndex = transferIndex) <= 0) { // 这里的目的是：1. 当一个线程进入时，会选取最新的转移下标。2. 当一个线程处理完自己的区间时，如果还有剩余区间的没有别的线程处理。再次获取区间 如果小于等于0，说明没有区间了 ，i 改成 -1，推进状态变成 false，不再推进，表示，扩容结束了，当前线程可以退出了
+                    i = -1; // 这个-1会在下面的if块里判断，从而进入完成状态判断
                     advance = false;
                 }
                 else if (U.compareAndSwapInt
                          (this, TRANSFERINDEX, nextIndex,
                           nextBound = (nextIndex > stride ?
-                                       nextIndex - stride : 0))) {
-                    bound = nextBound;
-                    i = nextIndex - 1;
-                    advance = false;
+                                       nextIndex - stride : 0))) { // CAS 修改 transferIndex，即 length - 区间值，留下剩余的区间值供后面的线程使用
+                    bound = nextBound; // 这个值就是当前线程可以处理的最小当前区间最小下标
+                    i = nextIndex - 1; // 初次对i 赋值，这个就是当前线程可以处理的当前区间的最大下标
+                    advance = false; // 这里设置 false，是为了防止在没有成功处理一个桶的情况下却进行了推进，这样对导致漏掉某个桶。下面的 if (tabAt(tab, i) == f) 判断会出现这样的情况
                 }
             }
-            if (i < 0 || i >= n || i + n >= nextn) { // 如果一次遍历完成了 也就是整个map所有桶中的元素都迁移完成了
+            if (i < 0 || i >= n || i + n >= nextn) { // 如果i小于0 （不在 tab 下标内，按照上面的判断，领取最后一段区间的线程扩容结束）
                 int sc;
-                if (finishing) { // 如果全部迁移完成了，则替换旧桶数组 并设置下一次扩容门槛为新桶数组容量的0.75倍
-                    nextTable = null;
-                    table = nextTab;
-                    sizeCtl = (n << 1) - (n >>> 1);
+                if (finishing) { // 如果完成了扩容 如果全部迁移完成了，则替换旧桶数组 并设置下一次扩容门槛为新桶数组容量的0.75倍
+                    nextTable = null; // 删除成员变量
+                    table = nextTab; // 更新table
+                    sizeCtl = (n << 1) - (n >>> 1); // 更新阈值
                     return;
                 }
-                if (U.compareAndSwapInt(this, SIZECTL, sc = sizeCtl, sc - 1)) { // 当前线程扩容完成，把扩容线程数-1
-                    if ((sc - 2) != resizeStamp(n) << RESIZE_STAMP_SHIFT) // 扩容完成两边肯定相等
+                if (U.compareAndSwapInt(this, SIZECTL, sc = sizeCtl, sc - 1)) { // 当前线程扩容完成，把扩容线程数-1 尝试将sc -1. 表示这个线程结束帮助扩容了，将sc的低16位减一
+                    if ((sc - 2) != resizeStamp(n) << RESIZE_STAMP_SHIFT) // 如果sc- 2不等于标识符左移16位。如果他们相等了，说明没有线程在帮助他们扩容了。也就是说，扩容结束了
                         return;
                     finishing = advance = true; // 把finishing设置为true finishing为true才会走到上面的if条件
                     i = n; // recheck before commit // i重新赋值为n 这样会再重新遍历一次桶数组，看看是不是都迁移完成了 也就是第二次遍历都会走到下面的(fh = f.hash) == MOVED这个条件
                 }
             }
-            else if ((f = tabAt(tab, i)) == null) // 如果桶中无数据，直接放入ForwardingNode标记该桶已迁移
-                advance = casTabAt(tab, i, null, fwd);
+            else if ((f = tabAt(tab, i)) == null) // 如果桶中无数据，直接放入fwd标记该桶已迁移
+                advance = casTabAt(tab, i, null, fwd); // 如果成功写入 fwd 占位，再次推进一个下标
             else if ((fh = f.hash) == MOVED) // 如果桶中第一个元素的hash值为MOVED 说明它是ForwardingNode节点 也就是该桶已迁移
-                advance = true; // already processed
+                advance = true; // already processed // 说明别的线程已经处理过了，再次推进一个下标
             else {
-                synchronized (f) { // 锁定该桶并迁移元素
+                synchronized (f) { // 到这里，说明这个位置有实际值了，且不是占位符。对这个节点上锁。为什么上锁，防止putVal的时候向链表插入数据
                     if (tabAt(tab, i) == f) { // 再次判断当前桶第一个元素是否有修改 也就是可能其它线程先一步迁移了元素
                         Node<K,V> ln, hn; // 把一个链表分化成两个链表 规则是桶中各元素的hash与桶大小n进行与操作 等于0的放到低位链表(low)中，不等于0的放到高位链表(high)中 其中低位链表迁移到新桶中的位置相对旧桶不变 高位链表迁移到新桶中位置正好是其在旧桶的位置加n 这也正是为什么扩容时容量在变成两倍的原因
                         if (fh >= 0) { // 第一个元素的hash值大于等于0 说明该桶中元素是以链表形式存储的 这里与HashMap迁移算法基本类似 唯一不同的是多了一步寻找lastRun 这里的lastRun是提取出链表后面不用处理再特殊处理的子链表 比如所有元素的hash值与桶大小n与操作后的值分别为 0 0 4 4 0 0 0 则最后后面三个0对应的元素肯定还是在同一个桶中 这时lastRun对应的就是倒数第三个节点
-                            int runBit = fh & n;
-                            Node<K,V> lastRun = f;
-                            for (Node<K,V> p = f.next; p != null; p = p.next) {
-                                int b = p.hash & n;
+                            int runBit = fh & n; // n是表示老桶数组的长度 是2的幂次方 也就是说n的二进制表示第m位为1 其余低位都是0 fh不论是什么 fh与上n 结果一定是第m位可能位0 可能为1 低位全是0 也就是说结果要么是0 要么是n
+                            Node<K,V> lastRun = f; // 尾节点，且和头节点的 hash 值取与不相等
+                            for (Node<K,V> p = f.next; p != null; p = p.next) { // 遍历这个桶 桶里面放的是单链表 也就是遍历单链表
+                                int b = p.hash & n; // 根据hash&n结果是否等于0 决定是链表拆分放高位还是低位
                                 if (b != runBit) {
-                                    runBit = b;
-                                    lastRun = p;
+                                    runBit = b; // 更新 runBit，用于下面判断 lastRun 该赋值给 ln 还是 hn
+                                    lastRun = p; // 这个 lastRun 保证后面的节点与自己的取于值相同，避免后面没有必要的循环
                                 }
                             }
-                            if (runBit == 0) { // 看看最后这几个元素归属于低位链表还是高位链表
+                            if (runBit == 0) { // 看看最后这几个元素归属于低位链表还是高位链表 如果最后更新的 runBit 是 0 ，设置低位节点
                                 ln = lastRun;
                                 hn = null;
                             }
-                            else {
+                            else { // 如果最后更新的runBit是n 设置高位节点
                                 hn = lastRun;
                                 ln = null;
                             }
-                            for (Node<K,V> p = f; p != lastRun; p = p.next) { // 遍历链表，把hash&n为0的放在低位链表中 不为0的放在高位链表中
+                            for (Node<K,V> p = f; p != lastRun; p = p.next) { // 遍历链表，把hash&n为0的放在低位链表中 不为0的放在高位链表中 再次循环，生成两个链表，lastRun作为停止条件，这样就是避免无谓的循环（lastRun 后面都是相同的取于结果）
                                 int ph = p.hash; K pk = p.key; V pv = p.val;
-                                if ((ph & n) == 0)
+                                if ((ph & n) == 0) // 如果与运算结果是 0，那么就还在低位
                                     ln = new Node<K,V>(ph, pk, pv, ln);
-                                else
+                                else // 否则放在高位
                                     hn = new Node<K,V>(ph, pk, pv, hn);
                             }
                             setTabAt(nextTab, i, ln); // 低位链表的位置不变
@@ -2483,7 +2483,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                                 }
                             }
                             ln = (lc <= UNTREEIFY_THRESHOLD) ? untreeify(lo) :
-                                (hc != 0) ? new TreeBin<K,V>(lo) : t; // 如果分化的树中元素个数小于等于6，则退化成链表
+                                (hc != 0) ? new TreeBin<K,V>(lo) : t; // 如果分化的树中元素个数小于等于6，则退化成链表 否则就还是创建一个红黑树
                             hn = (hc <= UNTREEIFY_THRESHOLD) ? untreeify(hi) :
                                 (lc != 0) ? new TreeBin<K,V>(hi) : t;
                             setTabAt(nextTab, i, ln); // 低位树的位置不变
@@ -2611,23 +2611,23 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
     private final void treeifyBin(Node<K,V>[] tab, int index) {
         Node<K,V> b; int n, sc;
         if (tab != null) {
-            if ((n = tab.length) < MIN_TREEIFY_CAPACITY)
-                tryPresize(n << 1);
-            else if ((b = tabAt(tab, index)) != null && b.hash >= 0) {
-                synchronized (b) {
-                    if (tabAt(tab, index) == b) {
+            if ((n = tab.length) < MIN_TREEIFY_CAPACITY) // 进到这个分支的前提条件：某个桶里面数组长度>=8 整个桶数组长度<64
+                tryPresize(n << 1); // 调用tryPresize(size) 这个时候size已经被翻倍过了
+            else if ((b = tabAt(tab, index)) != null && b.hash >= 0) { // 进到这个分支的前提条件：某个桶里面的数组长度>=8 整个桶数组长度>=64 要树化的这个桶当前还是链表
+                synchronized (b) { // 对桶加锁
+                    if (tabAt(tab, index) == b) { // 再次校验桶中链表头元素
                         TreeNode<K,V> hd = null, tl = null;
-                        for (Node<K,V> e = b; e != null; e = e.next) {
+                        for (Node<K,V> e = b; e != null; e = e.next) { // 单链表的遍历
                             TreeNode<K,V> p =
                                 new TreeNode<K,V>(e.hash, e.key, e.val,
-                                                  null, null);
+                                                  null, null); // 红黑树节点
                             if ((p.prev = tl) == null)
                                 hd = p;
                             else
                                 tl.next = p;
                             tl = p;
                         }
-                        setTabAt(tab, index, new TreeBin<K,V>(hd));
+                        setTabAt(tab, index, new TreeBin<K,V>(hd)); // 桶上的链表换成了红黑树
                     }
                 }
             }
