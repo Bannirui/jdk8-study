@@ -416,7 +416,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
      */
     static final class Node<K,V> {
         final K key;
-        volatile Object value;
+        volatile Object value; // value类型是Object而不是V 在删除节点的时候value会指向当前元素本身
         volatile Node<K,V> next;
 
         /**
@@ -437,7 +437,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
          */
         Node(Node<K,V> next) {
             this.key = null;
-            this.value = this;
+            this.value = this; // value指向当前元素本身
             this.next = next;
         }
 
@@ -562,10 +562,10 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
      * ways, that can't nicely be captured by placing field in a
      * shared abstract class.
      */
-    static class Index<K,V> {
+    static class Index<K,V> { // 索引节点
         final Node<K,V> node;
-        final Index<K,V> down;
-        volatile Index<K,V> right;
+        final Index<K,V> down; // 指针 向下索引指针
+        volatile Index<K,V> right; // 指针 向右索引指针
 
         /**
          * Creates index node with given values.
@@ -636,8 +636,8 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
     /**
      * Nodes heading each level keep track of their level.
      */
-    static final class HeadIndex<K,V> extends Index<K,V> {
-        final int level;
+    static final class HeadIndex<K,V> extends Index<K,V> { // 头索引节点
+        final int level; // 索引层级
         HeadIndex(Node<K,V> node, Index<K,V> down, Index<K,V> right, int level) {
             super(node, down, right);
             this.level = level;
@@ -815,11 +815,11 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
      * @return the old value, or null if newly inserted
      */
     private V doPut(K key, V value, boolean onlyIfAbsent) {
-        Node<K,V> z;             // added node
-        if (key == null)
+        Node<K,V> z;             // added node // 添加元素存储在z中
+        if (key == null) // key不能为null
             throw new NullPointerException();
         Comparator<? super K> cmp = comparator;
-        outer: for (;;) {
+        outer: for (;;) { // 自旋 找到目标节点的位置并插入 目标节点是数据节点 也是最底层的那条链
             for (Node<K,V> b = findPredecessor(key, cmp), n = b.next;;) {
                 if (n != null) {
                     Object v; int c;
@@ -1576,7 +1576,7 @@ public class ConcurrentSkipListMap<K,V> extends AbstractMap<K,V>
      * @throws NullPointerException if the specified key or value is null
      */
     public V put(K key, V value) {
-        if (value == null)
+        if (value == null) // 不能存储value为null的元素 value为null标记着该元素被删除
             throw new NullPointerException();
         return doPut(key, value, false);
     }
