@@ -93,10 +93,10 @@ public class HashSet<E>
 {
     static final long serialVersionUID = -5024744406713321676L;
 
-    private transient HashMap<E,Object> map;
+    private transient HashMap<E,Object> map; // map属性 HashSet的元素唯一性是通过HashMap保证的
 
     // Dummy value to associate with an Object in the backing Map
-    private static final Object PRESENT = new Object();
+    private static final Object PRESENT = new Object(); // 虚拟对象 用来作为value放到HashMap中去
 
     /**
      * Constructs a new, empty set; the backing <tt>HashMap</tt> instance has
@@ -116,7 +116,7 @@ public class HashSet<E>
      * @throws NullPointerException if the specified collection is null
      */
     public HashSet(Collection<? extends E> c) {
-        map = new HashMap<>(Math.max((int) (c.size()/.75f) + 1, 16));
+        map = new HashMap<>(Math.max((int) (c.size()/.75f) + 1, 16)); // 从这个地方也就看出来 在实际生产中如果我们自己需要指定大小进行初始化 (size/0.75)+1
         addAll(c);
     }
 
@@ -154,11 +154,11 @@ public class HashSet<E>
      * @param      initialCapacity   the initial capacity of the hash map
      * @param      loadFactor        the load factor of the hash map
      * @param      dummy             ignored (distinguishes this
-     *             constructor from other int, float constructor.)
+     *             constructor from other int, float constructor.) // 这个形参没有任何实际意义 仅仅是为了区别方法签名
      * @throws     IllegalArgumentException if the initial capacity is less
      *             than zero, or if the load factor is nonpositive
      */
-    HashSet(int initialCapacity, float loadFactor, boolean dummy) {
+    HashSet(int initialCapacity, float loadFactor, boolean dummy) { // 不是public修饰的 只能被同一个包或者子类调用 留给LinkedHashSet用的
         map = new LinkedHashMap<>(initialCapacity, loadFactor);
     }
 
@@ -217,7 +217,7 @@ public class HashSet<E>
      * element
      */
     public boolean add(E e) {
-        return map.put(e, PRESENT)==null;
+        return map.put(e, PRESENT)==null; // 调用HashMap的put方法 key是元素本身 value是PRESENT=new Object() 也就是说HashMap中所有mapping的value都一样
     }
 
     /**
