@@ -1,4 +1,4 @@
-package test.tree;
+package test.treeset;
 
 import org.junit.Test;
 
