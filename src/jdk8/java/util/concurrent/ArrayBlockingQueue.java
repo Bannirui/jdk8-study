@@ -91,16 +91,16 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
     private static final long serialVersionUID = -817911632652898426L;
 
     /** The queued items */
-    final Object[] items;
+    final Object[] items; // 数组存储元素
 
     /** items index for next take, poll, peek or remove */
-    int takeIndex;
+    int takeIndex; // 取元素的指针
 
     /** items index for next put, offer, or add */
-    int putIndex;
+    int putIndex; // 放元素的指针
 
     /** Number of elements in the queue */
-    int count;
+    int count; // 元素数量
 
     /*
      * Concurrency control uses the classic two-condition algorithm
@@ -108,13 +108,13 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      */
 
     /** Main lock guarding all access */
-    final ReentrantLock lock;
+    final ReentrantLock lock; // 保证并发访问共享资源安全的锁
 
     /** Condition for waiting takes */
-    private final Condition notEmpty;
+    private final Condition notEmpty; // 非空条件 阻塞等待取的线程
 
     /** Condition for waiting puts */
-    private final Condition notFull;
+    private final Condition notFull; // 非满条件 阻塞等待放的线程
 
     /**
      * Shared state for currently active iterators, or null if there
@@ -157,31 +157,31 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
     private void enqueue(E x) {
         // assert lock.getHoldCount() == 1;
         // assert items[putIndex] == null;
-        final Object[] items = this.items;
-        items[putIndex] = x;
-        if (++putIndex == items.length)
+        final Object[] items = this.items; // 当前数组
+        items[putIndex] = x; // 把元素放到putIndex指针上
+        if (++putIndex == items.length) // putIndex指针后移 如果putIndex已经走到数组尽头了 就再回到0的地方 充分说明了利用指针重复循环使用数组
             putIndex = 0;
         count++;
-        notEmpty.signal();
+        notEmpty.signal(); // 唤醒阻塞在notEmpty里面的一个线程 可以take元素了 因为已经完成了一个元素的入队 队列肯定不为空了
     }
 
     /**
      * Extracts element at current take position, advances, and signals.
      * Call only when holding lock.
      */
-    private E dequeue() {
+    private E dequeue() { // 出队
         // assert lock.getHoldCount() == 1;
         // assert items[takeIndex] != null;
-        final Object[] items = this.items;
+        final Object[] items = this.items; // 数组
         @SuppressWarnings("unchecked")
-        E x = (E) items[takeIndex];
-        items[takeIndex] = null;
-        if (++takeIndex == items.length)
+        E x = (E) items[takeIndex]; // takeIndex
+        items[takeIndex] = null; // 元素已经出队 数组中置为空
+        if (++takeIndex == items.length) // takeIndex后移 如果已经到了数组尽头 就置为0 充分说明了通过指针重复循环使用数组
             takeIndex = 0;
-        count--;
+        count--; // 元素出队了 数量-1
         if (itrs != null)
             itrs.elementDequeued();
-        notFull.signal();
+        notFull.signal(); // 现在已经出队一个元素了 队列肯定没满 唤醒阻塞在notFull里面的线程
         return x;
     }
 
@@ -194,38 +194,38 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         // assert lock.getHoldCount() == 1;
         // assert items[removeIndex] != null;
         // assert removeIndex >= 0 && removeIndex < items.length;
-        final Object[] items = this.items;
-        if (removeIndex == takeIndex) {
+        final Object[] items = this.items; // 数组
+        if (removeIndex == takeIndex) { // 如果要删除的脚标等于takeIndex
             // removing front item; just advance
-            items[takeIndex] = null;
-            if (++takeIndex == items.length)
+            items[takeIndex] = null; // 就删掉takeIndex元素
+            if (++takeIndex == items.length) // 后移takeIndex指针 如果到了数组尾部 就从头开始
                 takeIndex = 0;
-            count--;
+            count--; // 已经移除了一个元素 元素数量-1
             if (itrs != null)
                 itrs.elementDequeued();
-        } else {
+        } else { // 要删除的脚标(takeIndex, putIndex] 在tabkeIndex到putIndex之间
             // an "interior" remove
 
             // slide over all others up through putIndex.
             final int putIndex = this.putIndex;
-            for (int i = removeIndex;;) {
+            for (int i = removeIndex;;) { // 死循环 i是当前指针 next是i的下一个指针
                 int next = i + 1;
-                if (next == items.length)
+                if (next == items.length) // 如果指针移动到了数组尾部 就从头开始
                     next = 0;
-                if (next != putIndex) {
-                    items[i] = items[next];
-                    i = next;
-                } else {
+                if (next != putIndex) { // 现在确定了要删除removeIndex 就遍历[removeIndex, putIndex] 所有元素前移 最终将最后一个putIndex删除 就等于删除了removeIndex脚标处的元素
+                    items[i] = items[next]; // 元素前移
+                    i = next; // 指针后移
+                } else { // 这个时候已经遍历到了putIndex 相当于指针i移动到了队列倒数第二个元素 并且把最后一个元素已经复制到了倒数第二个位置上 把最后一个元素删除 再把最后的指针putIndex迁移一个
                     items[i] = null;
                     this.putIndex = i;
                     break;
                 }
             }
-            count--;
+            count--; // 已经移除了一个元素 元素数量-1
             if (itrs != null)
                 itrs.removedAt(removeIndex);
         }
-        notFull.signal();
+        notFull.signal(); // 移除了一个元素 现在队列肯定不满了 唤醒阻塞在put中的一个线程
     }
 
     /**
@@ -236,7 +236,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      * @throws IllegalArgumentException if {@code capacity < 1}
      */
     public ArrayBlockingQueue(int capacity) {
-        this(capacity, false);
+        this(capacity, false); // 使用的锁是非公平锁
     }
 
     /**
@@ -250,10 +250,10 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      * @throws IllegalArgumentException if {@code capacity < 1}
      */
     public ArrayBlockingQueue(int capacity, boolean fair) {
-        if (capacity <= 0)
+        if (capacity <= 0) // 初始化容量必须大于0
             throw new IllegalArgumentException();
-        this.items = new Object[capacity];
-        lock = new ReentrantLock(fair);
+        this.items = new Object[capacity]; // 初始化数组
+        lock = new ReentrantLock(fair); // 公平锁or非公平锁 两个Condition 初始化
         notEmpty = lock.newCondition();
         notFull =  lock.newCondition();
     }
@@ -282,7 +282,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
         lock.lock(); // Lock only for visibility, not mutual exclusion
         try {
             int i = 0;
-            try {
+            try { // 这个地方try...catch的原因是构造方法中手动指定队列的容量 如果队列的容量<集合c中元素数量 for循环遍历往队列数组放元素会越界抛异常
                 for (E e : c) {
                     checkNotNull(e);
                     items[i++] = e;
@@ -291,7 +291,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
                 throw new IllegalArgumentException();
             }
             count = i;
-            putIndex = (i == capacity) ? 0 : i;
+            putIndex = (i == capacity) ? 0 : i; // 如果putIndex已经到数组尾了 就重置为0 从头开始 体现出了重复循环利用数组空间
         } finally {
             lock.unlock();
         }
@@ -308,7 +308,7 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      * @throws IllegalStateException if this queue is full
      * @throws NullPointerException if the specified element is null
      */
-    public boolean add(E e) {
+    public boolean add(E e) { // 队列满了抛异常
         return super.add(e);
     }
 
@@ -321,15 +321,15 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      *
      * @throws NullPointerException if the specified element is null
      */
-    public boolean offer(E e) {
-        checkNotNull(e);
+    public boolean offer(E e) { // 队列满了返回false
+        checkNotNull(e); // 元素不可为空
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
-            if (count == items.length)
+            if (count == items.length) // 如果插入元素之前数据就已经满了 返回false
                 return false;
             else {
-                enqueue(e);
+                enqueue(e); // 元素入队
                 return true;
             }
         } finally {
@@ -344,14 +344,14 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      * @throws InterruptedException {@inheritDoc}
      * @throws NullPointerException {@inheritDoc}
      */
-    public void put(E e) throws InterruptedException {
-        checkNotNull(e);
+    public void put(E e) throws InterruptedException { // 队列满了就阻塞线程 在此期间线程中断了就抛出异常
+        checkNotNull(e); // 元素不能为空
         final ReentrantLock lock = this.lock;
-        lock.lockInterruptibly();
+        lock.lockInterruptibly(); // 线程加锁 如果线程中断了就抛出异常
         try {
-            while (count == items.length)
+            while (count == items.length) // 如果元素入队之前数组就满了 让线程阻塞在notFull里面
                 notFull.await();
-            enqueue(e);
+            enqueue(e); // 元素入队
         } finally {
             lock.unlock();
         }
@@ -366,58 +366,58 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      * @throws NullPointerException {@inheritDoc}
      */
     public boolean offer(E e, long timeout, TimeUnit unit)
-        throws InterruptedException {
+        throws InterruptedException { // 最多阻塞timeout时间 队列还是满的就返回fasle 如果在timeout时间内线程中断就抛出异常
 
-        checkNotNull(e);
+        checkNotNull(e); // 元素非空
         long nanos = unit.toNanos(timeout);
         final ReentrantLock lock = this.lock;
-        lock.lockInterruptibly();
+        lock.lockInterruptibly(); // 线程加锁 如果线程中断了就抛出异常
         try {
-            while (count == items.length) {
+            while (count == items.length) { // 如果数组满了就把线程阻塞在notFull里面nanos这么长时间 如果在阻塞期间被唤醒但是数组没有空间就继续阻塞 如果过了nanos长时间之后数组还没有空间 就直接返回false
                 if (nanos <= 0)
-                    return false;
+                    return false; // 到这说明线程已经阻塞在notFull里面nanos时间之后数组还没空出空间
                 nanos = notFull.awaitNanos(nanos);
             }
-            enqueue(e);
+            enqueue(e); // 入队操作
             return true;
         } finally {
             lock.unlock();
         }
     }
 
-    public E poll() {
+    public E poll() { // 队列为空就返回null
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
-            return (count == 0) ? null : dequeue();
+            return (count == 0) ? null : dequeue(); // 队列为空返回的是null
         } finally {
             lock.unlock();
         }
     }
 
-    public E take() throws InterruptedException {
+    public E take() throws InterruptedException { // 队列空了就阻塞线程 在此期间线程中断了就抛出异常
         final ReentrantLock lock = this.lock;
-        lock.lockInterruptibly();
+        lock.lockInterruptibly(); // 线程上锁 线程中断了就抛出异常
         try {
-            while (count == 0)
+            while (count == 0) // 队列已空 线程就阻塞在notEmpty 等待被唤醒
                 notEmpty.await();
-            return dequeue();
+            return dequeue(); // 出队
         } finally {
             lock.unlock();
         }
     }
 
-    public E poll(long timeout, TimeUnit unit) throws InterruptedException {
+    public E poll(long timeout, TimeUnit unit) throws InterruptedException { // 队列为空就阻塞timeout时间 线程中断就抛出异常
         long nanos = unit.toNanos(timeout);
         final ReentrantLock lock = this.lock;
-        lock.lockInterruptibly();
+        lock.lockInterruptibly(); // 线程加锁 如果线程被中断就抛出一个异常
         try {
-            while (count == 0) {
+            while (count == 0) { // 如果队列是空的 就让线程阻塞在notEmpty里面等待唤醒或者timeout 如果在nanos期间被唤醒但是队列依然是空的就继续阻塞 如果最终timeout后队列依然是空的 就直接返回false 出队失败
                 if (nanos <= 0)
                     return null;
                 nanos = notEmpty.awaitNanos(nanos);
             }
-            return dequeue();
+            return dequeue(); // 元素出队
         } finally {
             lock.unlock();
         }
@@ -492,19 +492,19 @@ public class ArrayBlockingQueue<E> extends AbstractQueue<E>
      */
     public boolean remove(Object o) {
         if (o == null) return false;
-        final Object[] items = this.items;
+        final Object[] items = this.items; // 数组
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
-            if (count > 0) {
-                final int putIndex = this.putIndex;
-                int i = takeIndex;
-                do {
+            if (count > 0) { // 至少队列中要有元素可以删除
+                final int putIndex = this.putIndex; // 放元素的索引
+                int i = takeIndex; // 取元素的索引
+                do { // tabkeIndex跟putIndex相当于快慢指针 putIndex>=takeIndex takeIndex到putIndex之间的元素就是现在队列中的元素 要出队的目标元素肯定在这中间 i指针就在这之间遍历
                     if (o.equals(items[i])) {
-                        removeAt(i);
+                        removeAt(i); // 找到了要出队的目标元素
                         return true;
                     }
-                    if (++i == items.length)
+                    if (++i == items.length) // 还没找到目标元素 寻找指针后移 如果到了数组尾 就从0继续
                         i = 0;
                 } while (i != putIndex);
             }
