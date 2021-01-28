@@ -93,7 +93,7 @@ import java.util.Spliterator;
  */
 public class ConcurrentSkipListSet<E>
     extends AbstractSet<E>
-    implements NavigableSet<E>, Cloneable, java.io.Serializable {
+    implements NavigableSet<E>, Cloneable, java.io.Serializable { // 实现了NavigableSet接口，并没有所谓的ConcurrentNavigableSet接口
 
     private static final long serialVersionUID = -2479143111061671589L;
 
@@ -102,14 +102,14 @@ public class ConcurrentSkipListSet<E>
      * element.  This field is declared final for the sake of thread
      * safety, which entails some ugliness in clone().
      */
-    private final ConcurrentNavigableMap<E,Object> m;
+    private final ConcurrentNavigableMap<E,Object> m; // 存储元素的map 从构造方法可以看出来 最终大多数场景中依然是借助于ConcurrentSkipListMap
 
     /**
      * Constructs a new, empty set that orders its elements according to
      * their {@linkplain Comparable natural ordering}.
      */
     public ConcurrentSkipListSet() {
-        m = new ConcurrentSkipListMap<E,Object>();
+        m = new ConcurrentSkipListMap<E,Object>(); // 使用ConcurrentSkipListMap初始化
     }
 
     /**
@@ -121,7 +121,7 @@ public class ConcurrentSkipListSet<E>
      *        ordering} of the elements will be used.
      */
     public ConcurrentSkipListSet(Comparator<? super E> comparator) {
-        m = new ConcurrentSkipListMap<E,Object>(comparator);
+        m = new ConcurrentSkipListMap<E,Object>(comparator); // 使用ConcurrentSkipListMap初始化 传入key值比较器
     }
 
     /**
@@ -136,8 +136,8 @@ public class ConcurrentSkipListSet<E>
      *         of its elements are null
      */
     public ConcurrentSkipListSet(Collection<? extends E> c) {
-        m = new ConcurrentSkipListMap<E,Object>();
-        addAll(c);
+        m = new ConcurrentSkipListMap<E,Object>(); // 使用ConcurrentSkipListMap初始化
+        addAll(c); // 将集合c中所有元素放入map中
     }
 
     /**
@@ -149,14 +149,14 @@ public class ConcurrentSkipListSet<E>
      *         of its elements are null
      */
     public ConcurrentSkipListSet(SortedSet<E> s) {
-        m = new ConcurrentSkipListMap<E,Object>(s.comparator());
-        addAll(s);
+        m = new ConcurrentSkipListMap<E,Object>(s.comparator()); // 使用ConcurrentSkipListMap初始化
+        addAll(s); // 将有序set中元素放入map中
     }
 
     /**
      * For use by submaps
      */
-    ConcurrentSkipListSet(ConcurrentNavigableMap<E,Object> m) {
+    ConcurrentSkipListSet(ConcurrentNavigableMap<E,Object> m) { // 使用ConcurrentNavigableMap进行初始化 这个构造方法的访问边界修饰符不是public 默认的说明只能被同包或者子类访问
         this.m = m;
     }
 
@@ -166,7 +166,7 @@ public class ConcurrentSkipListSet<E>
      *
      * @return a shallow copy of this set
      */
-    public ConcurrentSkipListSet<E> clone() {
+    public ConcurrentSkipListSet<E> clone() { // 克隆方法
         try {
             @SuppressWarnings("unchecked")
             ConcurrentSkipListSet<E> clone =
@@ -237,7 +237,7 @@ public class ConcurrentSkipListSet<E>
      *         with the elements currently in this set
      * @throws NullPointerException if the specified element is null
      */
-    public boolean add(E e) {
+    public boolean add(E e) { // 添加元素 调用map的putIfAbsent()方法
         return m.putIfAbsent(e, Boolean.TRUE) == null;
     }
 
@@ -299,15 +299,15 @@ public class ConcurrentSkipListSet<E>
      * @param o the object to be compared for equality with this set
      * @return {@code true} if the specified object is equal to this set
      */
-    public boolean equals(Object o) {
+    public boolean equals(Object o) { // 重写equals()方法
         // Override AbstractSet version to avoid calling size()
-        if (o == this)
+        if (o == this) // 如果比较的就是当前对象 直接返回true
             return true;
-        if (!(o instanceof Set))
+        if (!(o instanceof Set)) // 如果超类都不是Set类型 直接返回false
             return false;
         Collection<?> c = (Collection<?>) o;
         try {
-            return containsAll(c) && c.containsAll(this);
+            return containsAll(c) && c.containsAll(this); // 两层for循环比较
         } catch (ClassCastException unused) {
             return false;
         } catch (NullPointerException unused) {
