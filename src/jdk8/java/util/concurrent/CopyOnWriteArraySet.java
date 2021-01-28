@@ -97,7 +97,7 @@ public class CopyOnWriteArraySet<E> extends AbstractSet<E>
         implements java.io.Serializable {
     private static final long serialVersionUID = 5457747651344034263L;
 
-    private final CopyOnWriteArrayList<E> al;
+    private final CopyOnWriteArrayList<E> al; // 维护CopyOnWriteArrayList属性 使用CopyOnWriteArrayList进行存储元素 CopyOnWriteArrayList#addIfAbsent()方法添加元素前会做校验是否存在重复元素 保证了集合中元素不重复 这也是set实现的关键
 
     /**
      * Creates an empty set.
@@ -114,12 +114,12 @@ public class CopyOnWriteArraySet<E> extends AbstractSet<E>
      * @throws NullPointerException if the specified collection is null
      */
     public CopyOnWriteArraySet(Collection<? extends E> c) {
-        if (c.getClass() == CopyOnWriteArraySet.class) {
+        if (c.getClass() == CopyOnWriteArraySet.class) { // 如果集合c的类型是CopyOnWriteArraySet 说明集合中已经没有重复元素 直接调用CopyOnWriteArrayList的构造方法进行初始化
             @SuppressWarnings("unchecked") CopyOnWriteArraySet<E> cc =
                 (CopyOnWriteArraySet<E>)c;
             al = new CopyOnWriteArrayList<E>(cc.al);
         }
-        else {
+        else { // 如果结合c的类型不是CopyOnWriteArraySet 意味着可能存在重复元素 调用CopyOnWriteArrayList#addAllAbsent()方法进行添加元素 会做重复元素校验处理
             al = new CopyOnWriteArrayList<E>();
             al.addAllAbsent(c);
         }
@@ -172,7 +172,7 @@ public class CopyOnWriteArraySet<E> extends AbstractSet<E>
      *
      * @return an array containing all the elements in this set
      */
-    public Object[] toArray() {
+    public Object[] toArray() { // 集合转数组
         return al.toArray();
     }
 
@@ -258,7 +258,7 @@ public class CopyOnWriteArraySet<E> extends AbstractSet<E>
      *         element
      */
     public boolean add(E e) {
-        return al.addIfAbsent(e);
+        return al.addIfAbsent(e); // list中元素是可以重复的 set中元素唯一不重复 调用CopyOnWriteArrayList#addIfAbsent()方法添加元素 添加之前会通过indexOf()方法检查是否存在元素 如果已经存在就直接返回false添加失败 如果不存在再进行元素添加 保证了在元素不重复
     }
 
     /**
@@ -364,10 +364,10 @@ public class CopyOnWriteArraySet<E> extends AbstractSet<E>
      * @param o object to be compared for equality with this set
      * @return {@code true} if the specified object is equal to this set
      */
-    public boolean equals(Object o) {
-        if (o == this)
+    public boolean equals(Object o) { // 重写了equals()方法
+        if (o == this) // 如果两者是同一个对象 直接返回true
             return true;
-        if (!(o instanceof Set))
+        if (!(o instanceof Set)) // 如果o不是Set对象 就返回false CopyOnWriteArraySet继承了AbstractSet AbstractSet实现了Set接口
             return false;
         Set<?> set = (Set<?>)(o);
         Iterator<?> it = set.iterator();
@@ -376,10 +376,10 @@ public class CopyOnWriteArraySet<E> extends AbstractSet<E>
         // for small sets, which CopyOnWriteArraySets should be.
 
         //  Use a single snapshot of underlying array
-        Object[] elements = al.getArray();
+        Object[] elements = al.getArray(); // 集合中数组快照
         int len = elements.length;
         // Mark matched elements to avoid re-checking
-        boolean[] matched = new boolean[len];
+        boolean[] matched = new boolean[len]; // 迭代元素逐个比较是否相等
         int k = 0;
         outer: while (it.hasNext()) {
             if (++k > len)
@@ -391,9 +391,9 @@ public class CopyOnWriteArraySet<E> extends AbstractSet<E>
                     continue outer;
                 }
             }
-            return false;
+            return false; // 但凡出现一个元素不想等 就可以直接返回equals()结果为false
         }
-        return k == len;
+        return k == len; // 这个地方最后才再比较两个集合中元素的数量 完全可以作为第一个检测条件 快速返回
     }
 
     public boolean removeIf(Predicate<? super E> filter) {
