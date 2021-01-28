@@ -33,7 +33,7 @@ import sun.misc.SharedSecrets;
  * The elements of the priority queue are ordered according to their
  * {@linkplain Comparable natural ordering}, or by a {@link Comparator}
  * provided at queue construction time, depending on which constructor is
- * used.  A priority queue does not permit {@code null} elements.
+ * used.  A priority queue does not permit {@code null} elements. // 不允许null 因为实现了Queue接口 其中定义的一些方法返回null而不抛出异常 如果允许了null会有二义性
  * A priority queue relying on natural ordering also does not permit
  * insertion of non-comparable objects (doing so may result in
  * {@code ClassCastException}).
@@ -81,11 +81,11 @@ import sun.misc.SharedSecrets;
  * @param <E> the type of elements held in this collection
  */
 public class PriorityQueue<E> extends AbstractQueue<E>
-    implements java.io.Serializable {
+    implements java.io.Serializable { // PriorityQueue不是有序的，只有堆顶存储着最小的元素
 
     private static final long serialVersionUID = -7720805057305804111L;
 
-    private static final int DEFAULT_INITIAL_CAPACITY = 11;
+    private static final int DEFAULT_INITIAL_CAPACITY = 11; // 默认容量
 
     /**
      * Priority queue represented as a balanced binary heap: the two
@@ -95,24 +95,24 @@ public class PriorityQueue<E> extends AbstractQueue<E>
      * heap and each descendant d of n, n <= d.  The element with the
      * lowest value is in queue[0], assuming the queue is nonempty.
      */
-    transient Object[] queue; // non-private to simplify nested class access
+    transient Object[] queue; // non-private to simplify nested class access // 存储元素的数组
 
     /**
      * The number of elements in the priority queue.
      */
-    private int size = 0;
+    private int size = 0; // 元素个数
 
     /**
      * The comparator, or null if priority queue uses elements'
      * natural ordering.
      */
-    private final Comparator<? super E> comparator;
+    private final Comparator<? super E> comparator; // 比较器
 
     /**
      * The number of times this priority queue has been
      * <i>structurally modified</i>.  See AbstractList for gory details.
      */
-    transient int modCount = 0; // non-private to simplify nested class access
+    transient int modCount = 0; // non-private to simplify nested class access // 修改次数
 
     /**
      * Creates a {@code PriorityQueue} with the default initial
@@ -161,10 +161,10 @@ public class PriorityQueue<E> extends AbstractQueue<E>
      *         less than 1
      */
     public PriorityQueue(int initialCapacity,
-                         Comparator<? super E> comparator) {
+                         Comparator<? super E> comparator) { // 全参构造方法 指定容量、比较器
         // Note: This restriction of at least one is not actually needed,
         // but continues for 1.5 compatibility
-        if (initialCapacity < 1)
+        if (initialCapacity < 1) // 指定容量大小进行初始化的时候至少为1
             throw new IllegalArgumentException();
         this.queue = new Object[initialCapacity];
         this.comparator = comparator;
@@ -281,7 +281,7 @@ public class PriorityQueue<E> extends AbstractQueue<E>
      * Attempts to allocate larger arrays may result in
      * OutOfMemoryError: Requested array size exceeds VM limit
      */
-    private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
+    private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8; // 兼容VM 有些VM数组头信息占8个字节 以这个为判断条件 可以减少OOM的概率 不是说不OOM 增加一个条件判断可以让一部分扩容落在MAX_ARRAY_SIZE之下 所有场景都不会OOM 有一部分扩容之后可能>MAX_ARRAY_SIZE 也就是Integer.MAX_VALUE 即使这样也只是可能导致某些VM发生OOM
 
     /**
      * Increases the capacity of the array.
@@ -289,15 +289,15 @@ public class PriorityQueue<E> extends AbstractQueue<E>
      * @param minCapacity the desired minimum capacity
      */
     private void grow(int minCapacity) {
-        int oldCapacity = queue.length;
-        // Double size if small; else grow by 50%
+        int oldCapacity = queue.length; // 旧容量
+        // Double size if small; else grow by 50% // 如果旧容量<64 扩容=n+n+2=2n+2 如果旧容量?=64 扩容=n+n>>1=1.5n
         int newCapacity = oldCapacity + ((oldCapacity < 64) ?
                                          (oldCapacity + 2) :
                                          (oldCapacity >> 1));
         // overflow-conscious code
-        if (newCapacity - MAX_ARRAY_SIZE > 0)
-            newCapacity = hugeCapacity(minCapacity);
-        queue = Arrays.copyOf(queue, newCapacity);
+        if (newCapacity - MAX_ARRAY_SIZE > 0) // 判断是否超过MAX_ARRAY_SIZE这个人为设置的阈值
+            newCapacity = hugeCapacity(minCapacity); // 既然超过了MAX_ARRAY_SIZE 就将数组容量赋值为Integer.MAX_VALUE 这样的话就有可能导致OOM
+        queue = Arrays.copyOf(queue, newCapacity); // 老数组元素拷贝到新数组中
     }
 
     private static int hugeCapacity(int minCapacity) {
@@ -331,16 +331,16 @@ public class PriorityQueue<E> extends AbstractQueue<E>
      * @throws NullPointerException if the specified element is null
      */
     public boolean offer(E e) {
-        if (e == null)
+        if (e == null) // 不支持null元素 会存在二义性
             throw new NullPointerException();
         modCount++;
-        int i = size;
-        if (i >= queue.length)
+        int i = size; // 当前元素个数
+        if (i >= queue.length) // 判断队列是否已经满了 如果满了就扩容
             grow(i + 1);
-        size = i + 1;
-        if (i == 0)
+        size = i + 1; // 元素个数+1
+        if (i == 0) // 如果当前队列还是空的 就把元素放到数组的第一个位置
             queue[0] = e;
-        else
+        else // 如果当前队列不是空的 就把当前元素加到当前数组最后一个元素的下一位 然后做自下而上的堆化
             siftUp(i, e);
         return true;
     }
@@ -352,7 +352,7 @@ public class PriorityQueue<E> extends AbstractQueue<E>
 
     private int indexOf(Object o) {
         if (o != null) {
-            for (int i = 0; i < size; i++)
+            for (int i = 0; i < size; i++) // 遍历数组
                 if (o.equals(queue[i]))
                     return i;
         }
@@ -371,8 +371,8 @@ public class PriorityQueue<E> extends AbstractQueue<E>
      * @return {@code true} if this queue changed as a result of the call
      */
     public boolean remove(Object o) {
-        int i = indexOf(o);
-        if (i == -1)
+        int i = indexOf(o); // 找到要出对元素的数组脚标
+        if (i == -1) // 数组中没有该元素
             return false;
         else {
             removeAt(i);
@@ -584,15 +584,15 @@ public class PriorityQueue<E> extends AbstractQueue<E>
 
     @SuppressWarnings("unchecked")
     public E poll() {
-        if (size == 0)
+        if (size == 0) // size为0 表明队列中没有元素
             return null;
-        int s = --size;
+        int s = --size; // 弹出元素 原有元素数量-1
         modCount++;
-        E result = (E) queue[0];
-        E x = (E) queue[s];
-        queue[s] = null;
+        E result = (E) queue[0]; // 从这就可以看出弹出永远都是对首元素 因为排序方式实现是小顶堆 所以是最小值
+        E x = (E) queue[s]; // 对末元素
+        queue[s] = null; // 把队列末元素删除
         if (s != 0)
-            siftDown(0, x);
+            siftDown(0, x); // 队列末元素放到队首 再自上而下堆化
         return result;
     }
 
@@ -640,7 +640,7 @@ public class PriorityQueue<E> extends AbstractQueue<E>
      * @param k the position to fill
      * @param x the item to insert
      */
-    private void siftUp(int k, E x) {
+    private void siftUp(int k, E x) { // 根据是否有比较器 选择调用不同的方法
         if (comparator != null)
             siftUpUsingComparator(k, x);
         else
@@ -650,12 +650,12 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     @SuppressWarnings("unchecked")
     private void siftUpComparable(int k, E x) {
         Comparable<? super E> key = (Comparable<? super E>) x;
-        while (k > 0) {
-            int parent = (k - 1) >>> 1;
-            Object e = queue[parent];
-            if (key.compareTo((E) e) >= 0)
-                break;
-            queue[k] = e;
+        while (k > 0) { // 从这个循环可以看出：1，自下而上堆化，一直往上跟父节点比较 2，如果比父节点小，就与父节点交换位置，直到出现比父节点大为止 3，PriorityQueue是一个小顶堆
+            int parent = (k - 1) >>> 1; // 一般堆排序中 数组的第一个位置不使用 那么节点k 父节点k/2 左子节点2k-1 右子节点2k+1 在PriorityQueue实现中数组的第一个位置是存放了元素的 所以求父节点脚标先-1
+            Object e = queue[parent]; // 父节点的值
+            if (key.compareTo((E) e) >= 0) // 比较插入的元素与父节点的值 比父节点大 跳出循环 否则就与父节点交位置
+                break; // 跳出循环
+            queue[k] = e; // k本来位置是要插入x的 跟父节点交换位置 把父节点值放到k上
             k = parent;
         }
         queue[k] = key;
@@ -682,7 +682,7 @@ public class PriorityQueue<E> extends AbstractQueue<E>
      * @param k the position to fill
      * @param x the item to insert
      */
-    private void siftDown(int k, E x) {
+    private void siftDown(int k, E x) { // 自上而下堆化
         if (comparator != null)
             siftDownUsingComparator(k, x);
         else
@@ -692,20 +692,20 @@ public class PriorityQueue<E> extends AbstractQueue<E>
     @SuppressWarnings("unchecked")
     private void siftDownComparable(int k, E x) {
         Comparable<? super E> key = (Comparable<? super E>)x;
-        int half = size >>> 1;        // loop while a non-leaf
+        int half = size >>> 1;        // loop while a non-leaf // 只需要比较一半就行了，因为叶子节点占了一半的元素
         while (k < half) {
-            int child = (k << 1) + 1; // assume left child is least
-            Object c = queue[child];
-            int right = child + 1;
+            int child = (k << 1) + 1; // assume left child is least // 寻找子节点的位置，这里加1是因为元素从0号位置开始
+            Object c = queue[child]; // 左子节点的值
+            int right = child + 1; // 右子节点的值
             if (right < size &&
                 ((Comparable<? super E>) c).compareTo((E) queue[right]) > 0)
-                c = queue[child = right];
-            if (key.compareTo((E) c) <= 0)
+                c = queue[child = right]; // 左右节点取其小者
+            if (key.compareTo((E) c) <= 0) // 如果比子节点都小，则结束
                 break;
-            queue[k] = c;
-            k = child;
+            queue[k] = c; // 如果比最小的子节点大，则交换位置
+            k = child; // 指针移到最小子节点的位置继续往下比较
         }
-        queue[k] = key;
+        queue[k] = key; // 找到正确的位置，放入元素
     }
 
     @SuppressWarnings("unchecked")
