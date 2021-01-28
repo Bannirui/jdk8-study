@@ -90,20 +90,20 @@ package java.util;
  */
 
 public class TreeSet<E> extends AbstractSet<E>
-    implements NavigableSet<E>, Cloneable, java.io.Serializable
+    implements NavigableSet<E>, Cloneable, java.io.Serializable // 实现了NavigableSet<E> NavigableSet又继承自SortedSet 保证了有序性
 {
     /**
      * The backing map.
      */
-    private transient NavigableMap<E,Object> m;
+    private transient NavigableMap<E,Object> m; // 元素存储在NavigableMap中 TreeMap只是它的一种实现而已 通过构造方法可以看出来TreeSet的实现大多数情况下是借助TreeMap 不一定就是TreeMap
 
     // Dummy value to associate with an Object in the backing Map
-    private static final Object PRESENT = new Object();
+    private static final Object PRESENT = new Object(); // 虚拟元素 统一put进来的mapping的value=new Object()
 
     /**
      * Constructs a set backed by the specified navigable map.
      */
-    TreeSet(NavigableMap<E,Object> m) {
+    TreeSet(NavigableMap<E,Object> m) { // 直接使用传进来的NavigableMap存储元素 不是深拷贝 说明外面的map增删操作元素也会反映到这 边界修饰符不是public 说明只能是同包或者子类使用
         this.m = m;
     }
 
@@ -121,7 +121,7 @@ public class TreeSet<E> extends AbstractSet<E>
      * {@code ClassCastException}.
      */
     public TreeSet() {
-        this(new TreeMap<E,Object>());
+        this(new TreeMap<E,Object>()); // 使用TreeMap初始化
     }
 
     /**
@@ -138,7 +138,7 @@ public class TreeSet<E> extends AbstractSet<E>
      *        ordering} of the elements will be used.
      */
     public TreeSet(Comparator<? super E> comparator) {
-        this(new TreeMap<>(comparator));
+        this(new TreeMap<>(comparator)); // 使用带comparator的TreeMap初始化
     }
 
     /**
@@ -156,8 +156,8 @@ public class TreeSet<E> extends AbstractSet<E>
      * @throws NullPointerException if the specified collection is null
      */
     public TreeSet(Collection<? extends E> c) {
-        this();
-        addAll(c);
+        this(); // 调用无参构造方法 使用TreeMap初始化
+        addAll(c); // 将集合中所有元素添加到TreeSet
     }
 
     /**
@@ -168,8 +168,8 @@ public class TreeSet<E> extends AbstractSet<E>
      * @throws NullPointerException if the specified sorted set is null
      */
     public TreeSet(SortedSet<E> s) {
-        this(s.comparator());
-        addAll(s);
+        this(s.comparator()); // 使用带comparator的TreeMap初始化
+        addAll(s); // 将SortedSet中所有元素添加到TreeSet中
     }
 
     /**
@@ -177,7 +177,7 @@ public class TreeSet<E> extends AbstractSet<E>
      *
      * @return an iterator over the elements in this set in ascending order
      */
-    public Iterator<E> iterator() {
+    public Iterator<E> iterator() { // 迭代器
         return m.navigableKeySet().iterator();
     }
 
@@ -187,14 +187,14 @@ public class TreeSet<E> extends AbstractSet<E>
      * @return an iterator over the elements in this set in descending order
      * @since 1.6
      */
-    public Iterator<E> descendingIterator() {
+    public Iterator<E> descendingIterator() { // 逆序迭代器
         return m.descendingKeySet().iterator();
     }
 
     /**
      * @since 1.6
      */
-    public NavigableSet<E> descendingSet() {
+    public NavigableSet<E> descendingSet() { // 逆序返回TreeSet
         return new TreeSet<>(m.descendingMap());
     }
 
@@ -203,7 +203,7 @@ public class TreeSet<E> extends AbstractSet<E>
      *
      * @return the number of elements in this set (its cardinality)
      */
-    public int size() {
+    public int size() { // 元素个数
         return m.size();
     }
 
@@ -252,7 +252,7 @@ public class TreeSet<E> extends AbstractSet<E>
      *         does not permit null elements
      */
     public boolean add(E e) {
-        return m.put(e, PRESENT)==null;
+        return m.put(e, PRESENT)==null; // 添加元素 调用map的put()方法 mapping的value为PRESENT
     }
 
     /**
@@ -305,11 +305,11 @@ public class TreeSet<E> extends AbstractSet<E>
             Comparator<?> cc = set.comparator();
             Comparator<? super E> mc = map.comparator();
             if (cc==mc || (cc != null && cc.equals(mc))) {
-                map.addAllForTreeSet(set, PRESENT);
+                map.addAllForTreeSet(set, PRESENT); // 满足if分支条件的时候直接调用TreeMap#addAllForTreeSet()方法添加元素
                 return true;
             }
         }
-        return super.addAll(c);
+        return super.addAll(c); // 不满足if分支条件的时候 只能调用父类的#addAll()方法逐个添加元素
     }
 
     /**
