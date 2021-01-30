@@ -449,10 +449,10 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * ordered wrt other accesses or CASes use simple relaxed forms.
      */
     static final class Node {
-        final boolean isData;   // false if this is a request node
-        volatile Object item;   // initially non-null if isData; CASed to match
-        volatile Node next;
-        volatile Thread waiter; // null until waiting
+        final boolean isData;   // false if this is a request node // 是否是数据节点（也就标识了是生产者还是消费者）
+        volatile Object item;   // initially non-null if isData; CASed to match // 元素的值
+        volatile Node next; // 下一个节点
+        volatile Thread waiter; // null until waiting // 持有元素的线程
 
         // CAS methods for fields
         final boolean casNext(Node cmp, Node val) {
@@ -559,10 +559,10 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     }
 
     /** head of the queue; null until first enqueue */
-    transient volatile Node head;
+    transient volatile Node head; // 头节点
 
     /** tail of the queue; null until first append */
-    private transient volatile Node tail;
+    private transient volatile Node tail; // 尾节点
 
     /** The number of apparent failures to unsplice removed nodes */
     private transient volatile int sweepVotes;
@@ -581,12 +581,12 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     }
 
     /*
-     * Possible values for "how" argument in xfer method.
+     * Possible values for "how" argument in xfer method. 放取元素的几种方式
      */
-    private static final int NOW   = 0; // for untimed poll, tryTransfer
-    private static final int ASYNC = 1; // for offer, put, add
-    private static final int SYNC  = 2; // for transfer, take
-    private static final int TIMED = 3; // for timed poll, tryTransfer
+    private static final int NOW   = 0; // for untimed poll, tryTransfer // 立即返回，用于非超时的poll()和tryTransfer()方法中
+    private static final int ASYNC = 1; // for offer, put, add // 异步，不会阻塞，用于放元素时，因为内部使用无界单链表存储元素，不会阻塞放元素的过程
+    private static final int SYNC  = 2; // for transfer, take // 同步，调用的时候如果没有匹配到会阻塞直到匹配到为止
+    private static final int TIMED = 3; // for timed poll, tryTransfer // 超时，用于有超时的poll()和tryTransfer()方法中
 
     @SuppressWarnings("unchecked")
     static <E> E cast(Object item) {
@@ -605,45 +605,45 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * @throws NullPointerException if haveData mode but e is null
      */
     private E xfer(E e, boolean haveData, int how, long nanos) {
-        if (haveData && (e == null))
+        if (haveData && (e == null)) // 不允许放空元素
             throw new NullPointerException();
         Node s = null;                        // the node to append, if needed
 
         retry:
-        for (;;) {                            // restart on append race
+        for (;;) {                            // restart on append race // 外层循环，自旋，失败就重试
 
-            for (Node h = head, p = h; p != null;) { // find & match first node
-                boolean isData = p.isData;
-                Object item = p.item;
-                if (item != p && (item != null) == isData) { // unmatched
-                    if (isData == haveData)   // can't match
+            for (Node h = head, p = h; p != null;) { // find & match first node // 这个for循环用于控制匹配的过程 同一时刻队列中只会存储一种类型的节点 从头节点开始尝试匹配，如果头节点被其它线程先一步匹配了 就再尝试其下一个，直到匹配到为止，或者到队列中没有元素为止
+                boolean isData = p.isData; // p节点的模式
+                Object item = p.item; // p节点的值
+                if (item != p && (item != null) == isData) { // unmatched // p没有被匹配到
+                    if (isData == haveData)   // can't match // 如果两者模式一样，则不能匹配，跳出循环后尝试入队
                         break;
-                    if (p.casItem(item, e)) { // match
-                        for (Node q = p; q != h;) {
-                            Node n = q.next;  // update by 2 unless singleton
-                            if (head == h && casHead(h, n == null ? q : n)) {
+                    if (p.casItem(item, e)) { // match // 如果两者模式不一样，则尝试匹配 把p的值设置为e（如果是取元素则e是null，如果是放元素则e是元素值）
+                        for (Node q = p; q != h;) { // 匹配成功 for里面的逻辑比较复杂，用于控制多线程同时放取元素时出现竞争的情况的
+                            Node n = q.next;  // update by 2 unless singleton // 进入到这里可能是头节点已经被匹配，然后p会变成h的下一个节点
+                            if (head == h && casHead(h, n == null ? q : n)) { // 如果head还没变，就把它更新成新的节点 并把它删除（forgetNext()会把它的next设为自己，也就是从单链表中删除了） 这时为什么要把head设为n呢？因为到这里了，肯定head本身已经被匹配掉了 而上面的p.casItem()又成功了，说明p也被当前这个元素给匹配掉了 所以需要把它们俩都出队列，让其它线程可以从真正的头开始，不用重复检查了
                                 h.forgetNext();
                                 break;
                             }                 // advance and retry
                             if ((h = head)   == null ||
-                                (q = h.next) == null || !q.isMatched())
+                                (q = h.next) == null || !q.isMatched()) // 如果新的头节点为空，或者其next为空，或者其next未匹配，就重试
                                 break;        // unless slack < 2
                         }
-                        LockSupport.unpark(p.waiter);
-                        return LinkedTransferQueue.<E>cast(item);
+                        LockSupport.unpark(p.waiter); // 唤醒p中等待的线程
+                        return LinkedTransferQueue.<E>cast(item); // 并返回匹配到的元素
                     }
                 }
-                Node n = p.next;
+                Node n = p.next; // p已经被匹配了或者尝试匹配的时候失败了 也就是其它线程先一步匹配了p 这时候又分两种情况，p的next还没来得及修改，p的next指向了自己 如果p的next已经指向了自己，就重新取head重试，否则就取其next重试
                 p = (p != n) ? n : (h = head); // Use head if p offlist
-            }
+            } // 到这里肯定是队列中存储的节点类型和自己一样 或者队列中没有元素了 就入队（不管放元素还是取元素都得入队） 入队又分成四种情况： 1，NOW，立即返回，没有匹配到立即返回，不做入队操作 2，ASYNC，异步，元素入队但当前线程不会阻塞（相当于无界LinkedBlockingQueue的元素入队） 3，SYNC，同步，元素入队后当前线程阻塞，等待被匹配到 4，TIMED，有超时，元素入队后等待一段时间被匹配，时间到了还没匹配到就返回元素本身
 
-            if (how != NOW) {                 // No matches available
-                if (s == null)
+            if (how != NOW) {                 // No matches available // 如果不是立即返回
+                if (s == null) // 新建s节点
                     s = new Node(e, haveData);
-                Node pred = tryAppend(s, haveData);
-                if (pred == null)
+                Node pred = tryAppend(s, haveData); // 尝试入队
+                if (pred == null) // 入队失败，重试
                     continue retry;           // lost race vs opposite mode
-                if (how != ASYNC)
+                if (how != ASYNC) // 如果不是异步（同步或者有超时） 就等待被匹配
                     return awaitMatch(s, pred, e, (how == TIMED), nanos);
             }
             return e; // not waiting
@@ -660,27 +660,27 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * predecessor
      */
     private Node tryAppend(Node s, boolean haveData) {
-        for (Node t = tail, p = t;;) {        // move p to last node and append
+        for (Node t = tail, p = t;;) {        // move p to last node and append // 从tail开始遍历，把s放到链表尾端
             Node n, u;                        // temps for reads of next & tail
-            if (p == null && (p = head) == null) {
-                if (casHead(null, s))
+            if (p == null && (p = head) == null) { // 如果首尾都是null，说明链表中还没有元素
+                if (casHead(null, s)) // 就让首节点指向s 这里插入第一个元素的时候tail指针并没有指向s
                     return s;                 // initialize
             }
-            else if (p.cannotPrecede(haveData))
+            else if (p.cannotPrecede(haveData)) // 如果p无法处理，则返回null 这里无法处理的意思是，p和s节点的类型不一样，不允许s入队 比如，其它线程先入队了一个数据节点，这时候要入队一个非数据节点，就不允许，队列中所有的元素都要保证是同一种类型的节点 返回null后外面的方法会重新尝试匹配重新入队等
                 return null;                  // lost race vs opposite mode
-            else if ((n = p.next) != null)    // not last; keep traversing
+            else if ((n = p.next) != null)    // not last; keep traversing // 如果p的next不为空，说明不是最后一个节点 则让p重新指向最后一个节点
                 p = p != t && t != (u = tail) ? (t = u) : // stale tail
                     (p != n) ? n : null;      // restart if off list
-            else if (!p.casNext(null, s))
+            else if (!p.casNext(null, s)) // 则让p重新指向最后一个节点 则说明有其它线程先一步更新到p的next了 就让p指向p的next，重新尝试让s入队
                 p = p.next;                   // re-read on CAS failure
-            else {
+            else { // 到这里说明s成功入队了 如果p不等于t，就更新tail指针 上面插入第一个元素时tail指针并没有指向新元素 这里就是用来更新tail指针的
                 if (p != t) {                 // update if slack now >= 2
                     while ((tail != t || !casTail(t, s)) &&
                            (t = tail)   != null &&
                            (s = t.next) != null && // advance and retry
                            (s = s.next) != null && s != t);
                 }
-                return p;
+                return p; // 返回p，即s的前一个元素
             }
         }
     }
@@ -698,42 +698,42 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * @return matched item, or e if unmatched on interrupt or timeout
      */
     private E awaitMatch(Node s, Node pred, E e, boolean timed, long nanos) {
-        final long deadline = timed ? System.nanoTime() + nanos : 0L;
-        Thread w = Thread.currentThread();
-        int spins = -1; // initialized after first item and cancel checks
-        ThreadLocalRandom randomYields = null; // bound if needed
+        final long deadline = timed ? System.nanoTime() + nanos : 0L; // 如果是有超时的，计算其超时时间
+        Thread w = Thread.currentThread(); // 当前线程
+        int spins = -1; // initialized after first item and cancel checks // 自旋次数
+        ThreadLocalRandom randomYields = null; // bound if needed // 随机数，随机让一些自旋的线程让出CPU
 
         for (;;) {
             Object item = s.item;
-            if (item != e) {                  // matched
+            if (item != e) {                  // matched // 如果s元素的值不等于e，说明它被匹配到了
                 // assert item != s;
-                s.forgetContents();           // avoid garbage
-                return LinkedTransferQueue.<E>cast(item);
+                s.forgetContents();           // avoid garbage // 把s的item更新为s本身 并把s中的waiter置为空
+                return LinkedTransferQueue.<E>cast(item); // 返回匹配到的元素
             }
             if ((w.isInterrupted() || (timed && nanos <= 0)) &&
-                    s.casItem(e, s)) {        // cancel
-                unsplice(pred, s);
-                return e;
+                    s.casItem(e, s)) {        // cancel // 如果当前线程中断了，或者有超时的到期了 就更新s的元素值指向s本身
+                unsplice(pred, s); // 尝试解除s与其前一个节点的关系 也就是删除s节点
+                return e;  // 返回元素的值本身，说明没匹配到
             }
 
-            if (spins < 0) {                  // establish spins at/near front
-                if ((spins = spinsFor(pred, s.isData)) > 0)
-                    randomYields = ThreadLocalRandom.current();
+            if (spins < 0) {                  // establish spins at/near front // 如果自旋次数小于0，就计算自旋次数
+                if ((spins = spinsFor(pred, s.isData)) > 0) // spinsFor()计算自旋次数 如果前面有节点未被匹配就返回0 如果前面有节点且正在匹配中就返回一定的次数，等待
+                    randomYields = ThreadLocalRandom.current(); // 初始化随机数
             }
-            else if (spins > 0) {             // spin
+            else if (spins > 0) {             // spin // 还有自旋次数就减1
                 --spins;
-                if (randomYields.nextInt(CHAINED_SPINS) == 0)
+                if (randomYields.nextInt(CHAINED_SPINS) == 0) // 并随机让出CPU
                     Thread.yield();           // occasionally yield
             }
             else if (s.waiter == null) {
-                s.waiter = w;                 // request unpark then recheck
+                s.waiter = w;                 // request unpark then recheck // 更新s的waiter为当前线程
             }
-            else if (timed) {
+            else if (timed) { // 如果有超时，计算超时时间，并阻塞一定时间
                 nanos = deadline - System.nanoTime();
                 if (nanos > 0L)
                     LockSupport.parkNanos(this, nanos);
             }
-            else {
+            else { // 不是超时的，直接阻塞，等待被唤醒 唤醒后进入下一次循环，走第一个if的逻辑就返回匹配的元素了
                 LockSupport.park(this);
             }
         }
@@ -1167,7 +1167,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * @throws NullPointerException if the specified element is null
      */
     public void put(E e) {
-        xfer(e, true, ASYNC, 0);
+        xfer(e, true, ASYNC, 0); // 异步模式，不会阻塞，不会超时 因为是放元素，单链表存储，会一直往后加
     }
 
     /**
@@ -1181,7 +1181,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * @throws NullPointerException if the specified element is null
      */
     public boolean offer(E e, long timeout, TimeUnit unit) {
-        xfer(e, true, ASYNC, 0);
+        xfer(e, true, ASYNC, 0); // 异步的方式调用xfer()方法
         return true;
     }
 
@@ -1193,7 +1193,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * @throws NullPointerException if the specified element is null
      */
     public boolean offer(E e) {
-        xfer(e, true, ASYNC, 0);
+        xfer(e, true, ASYNC, 0); // 异步的方式调用xfer()方法
         return true;
     }
 
@@ -1206,7 +1206,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * @throws NullPointerException if the specified element is null
      */
     public boolean add(E e) {
-        xfer(e, true, ASYNC, 0);
+        xfer(e, true, ASYNC, 0); // 异步的方式调用xfer()方法
         return true;
     }
 
@@ -1221,7 +1221,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * @throws NullPointerException if the specified element is null
      */
     public boolean tryTransfer(E e) {
-        return xfer(e, true, NOW, 0) == null;
+        return xfer(e, true, NOW, 0) == null; // 立即返回
     }
 
     /**
@@ -1236,7 +1236,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      * @throws NullPointerException if the specified element is null
      */
     public void transfer(E e) throws InterruptedException {
-        if (xfer(e, true, SYNC, 0) != null) {
+        if (xfer(e, true, SYNC, 0) != null) { // 同步模式
             Thread.interrupted(); // failure possible only due to interrupt
             throw new InterruptedException();
         }
@@ -1258,7 +1258,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
      */
     public boolean tryTransfer(E e, long timeout, TimeUnit unit)
         throws InterruptedException {
-        if (xfer(e, true, TIMED, unit.toNanos(timeout)) == null)
+        if (xfer(e, true, TIMED, unit.toNanos(timeout)) == null) // 有超时时间
             return true;
         if (!Thread.interrupted())
             return false;
@@ -1266,7 +1266,7 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     }
 
     public E take() throws InterruptedException {
-        E e = xfer(null, false, SYNC, 0);
+        E e = xfer(null, false, SYNC, 0); // 同步模式，会阻塞直到取到元素
         if (e != null)
             return e;
         Thread.interrupted();
@@ -1274,14 +1274,14 @@ public class LinkedTransferQueue<E> extends AbstractQueue<E>
     }
 
     public E poll(long timeout, TimeUnit unit) throws InterruptedException {
-        E e = xfer(null, false, TIMED, unit.toNanos(timeout));
+        E e = xfer(null, false, TIMED, unit.toNanos(timeout)); // 有超时时间
         if (e != null || !Thread.interrupted())
             return e;
         throw new InterruptedException();
     }
 
     public E poll() {
-        return xfer(null, false, NOW, 0);
+        return xfer(null, false, NOW, 0); // 立即返回，没取到元素返回null
     }
 
     /**

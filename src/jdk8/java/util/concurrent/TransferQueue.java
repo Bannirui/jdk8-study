@@ -83,7 +83,7 @@ public interface TransferQueue<E> extends BlockingQueue<E> {
      * @throws IllegalArgumentException if some property of the specified
      *         element prevents it from being added to this queue
      */
-    boolean tryTransfer(E e);
+    boolean tryTransfer(E e); // 尝试移交元素
 
     /**
      * Transfers the element to a consumer, waiting if necessary to do so.
@@ -102,7 +102,7 @@ public interface TransferQueue<E> extends BlockingQueue<E> {
      * @throws IllegalArgumentException if some property of the specified
      *         element prevents it from being added to this queue
      */
-    void transfer(E e) throws InterruptedException;
+    void transfer(E e) throws InterruptedException; // 移交元素
 
     /**
      * Transfers the element to a consumer if it is possible to do so
@@ -132,7 +132,7 @@ public interface TransferQueue<E> extends BlockingQueue<E> {
      *         element prevents it from being added to this queue
      */
     boolean tryTransfer(E e, long timeout, TimeUnit unit)
-        throws InterruptedException;
+        throws InterruptedException; // 尝试移交元素(带超时时间)
 
     /**
      * Returns {@code true} if there is at least one consumer waiting
@@ -142,7 +142,7 @@ public interface TransferQueue<E> extends BlockingQueue<E> {
      *
      * @return {@code true} if there is at least one waiting consumer
      */
-    boolean hasWaitingConsumer();
+    boolean hasWaitingConsumer(); // 判断是否有消费者
 
     /**
      * Returns an estimate of the number of consumers waiting to
@@ -157,5 +157,5 @@ public interface TransferQueue<E> extends BlockingQueue<E> {
      *
      * @return the number of consumers waiting to receive elements
      */
-    int getWaitingConsumerCount();
+    int getWaitingConsumerCount(); // 查看消费者数量
 }
