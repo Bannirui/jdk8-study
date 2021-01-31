@@ -96,30 +96,30 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * other.  We also guarantee that all array cells not holding
      * deque elements are always null.
      */
-    transient Object[] elements; // non-private to simplify nested class access
+    transient Object[] elements; // non-private to simplify nested class access // 存储元素的数组
 
     /**
      * The index of the element at the head of the deque (which is the
      * element that would be removed by remove() or pop()); or an
      * arbitrary number equal to tail if the deque is empty.
      */
-    transient int head;
+    transient int head; // 队列头位置
 
     /**
      * The index at which the next element would be added to the tail
      * of the deque (via addLast(E), add(E), or push(E)).
      */
-    transient int tail;
+    transient int tail; // 队列尾位置
 
     /**
      * The minimum capacity that we'll use for a newly created deque.
      * Must be a power of 2.
      */
-    private static final int MIN_INITIAL_CAPACITY = 8;
+    private static final int MIN_INITIAL_CAPACITY = 8; // 最小初始容量
 
     // ******  Array allocation and resizing utilities ******
 
-    private static int calculateSize(int numElements) {
+    private static int calculateSize(int numElements) { // 计算容量，这段代码的逻辑是算出大于numElements的最接近的2的n次方且不小于8
         int initialCapacity = MIN_INITIAL_CAPACITY;
         // Find the best power of two to hold elements.
         // Tests "<=" because arrays aren't kept full.
@@ -143,7 +143,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      *
      * @param numElements  the number of elements to hold
      */
-    private void allocateElements(int numElements) {
+    private void allocateElements(int numElements) { // 初始化数组
         elements = new Object[calculateSize(numElements)];
     }
 
@@ -153,17 +153,17 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      */
     private void doubleCapacity() {
         assert head == tail;
-        int p = head;
-        int n = elements.length;
-        int r = n - p; // number of elements to the right of p
-        int newCapacity = n << 1;
-        if (newCapacity < 0)
+        int p = head; // 头指针的位置
+        int n = elements.length; // 旧数组长度
+        int r = n - p; // number of elements to the right of p // 头指针离数组尾的距离
+        int newCapacity = n << 1; // 新数组长度为旧数组长度2倍
+        if (newCapacity < 0) // 长度校验是否溢出
             throw new IllegalStateException("Sorry, deque too big");
-        Object[] a = new Object[newCapacity];
-        System.arraycopy(elements, p, a, 0, r);
-        System.arraycopy(elements, 0, a, r, p);
+        Object[] a = new Object[newCapacity]; // 新建新数组
+        System.arraycopy(elements, p, a, 0, r); // 将旧数组head之后的元素拷贝到新数组中
+        System.arraycopy(elements, 0, a, r, p); // 将旧数组下标0到head之间的元素拷贝到新数组中
         elements = a;
-        head = 0;
+        head = 0; // head指向0，tail指向旧数组长度表示的位置
         tail = n;
     }
 
@@ -190,7 +190,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * sufficient to hold 16 elements.
      */
     public ArrayDeque() {
-        elements = new Object[16];
+        elements = new Object[16]; // 默认构造方法，初始容量为16
     }
 
     /**
@@ -200,7 +200,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * @param numElements  lower bound on initial capacity of the deque
      */
     public ArrayDeque(int numElements) {
-        allocateElements(numElements);
+        allocateElements(numElements); // 指定元素个数初始化
     }
 
     /**
@@ -213,7 +213,7 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * @param c the collection whose elements are to be placed into the deque
      * @throws NullPointerException if the specified collection is null
      */
-    public ArrayDeque(Collection<? extends E> c) {
+    public ArrayDeque(Collection<? extends E> c) { // 将集合c中的元素初始化到数组中
         allocateElements(c.size());
         addAll(c);
     }
@@ -229,10 +229,10 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * @throws NullPointerException if the specified element is null
      */
     public void addFirst(E e) {
-        if (e == null)
+        if (e == null) // 不允许null元素
             throw new NullPointerException();
-        elements[head = (head - 1) & (elements.length - 1)] = e;
-        if (head == tail)
+        elements[head = (head - 1) & (elements.length - 1)] = e; // 将head指针减1并与数组长度减1取模 这是为了防止数组到头了边界溢出 如果到头了就从尾再向前 相当于循环利用数组
+        if (head == tail) // 如果头尾挨在一起了，就扩容 扩容规则也很简单，直接两倍
             doubleCapacity();
     }
 
@@ -244,11 +244,11 @@ public class ArrayDeque<E> extends AbstractCollection<E>
      * @param e the element to add
      * @throws NullPointerException if the specified element is null
      */
-    public void addLast(E e) {
-        if (e == null)
+    public void addLast(E e) { // 从队列尾入队
+        if (e == null) // 不允许null元素
             throw new NullPointerException();
-        elements[tail] = e;
-        if ( (tail = (tail + 1) & (elements.length - 1)) == head)
+        elements[tail] = e; // 在尾指针的位置放入元素 可以看到tail指针指向的是队列最后一个元素的下一个位置
+        if ( (tail = (tail + 1) & (elements.length - 1)) == head) // tail指针加1，如果到数组尾了就从头开始
             doubleCapacity();
     }
 
@@ -296,27 +296,27 @@ public class ArrayDeque<E> extends AbstractCollection<E>
         return x;
     }
 
-    public E pollFirst() {
+    public E pollFirst() { // 从队列头出队
         int h = head;
         @SuppressWarnings("unchecked")
-        E result = (E) elements[h];
+        E result = (E) elements[h]; // 取队列头元素
         // Element is null if deque empty
-        if (result == null)
+        if (result == null) // 如果队列为空，就返回null
             return null;
-        elements[h] = null;     // Must null out slot
-        head = (h + 1) & (elements.length - 1);
-        return result;
+        elements[h] = null;     // Must null out slot // 将队列头置为空
+        head = (h + 1) & (elements.length - 1); // 队列头指针右移一位
+        return result; // 返回取得的元素
     }
 
     public E pollLast() {
-        int t = (tail - 1) & (elements.length - 1);
+        int t = (tail - 1) & (elements.length - 1); // 尾指针左移一位
         @SuppressWarnings("unchecked")
-        E result = (E) elements[t];
-        if (result == null)
+        E result = (E) elements[t]; // 取当前尾指针处元素
+        if (result == null) // 如果队列为空返回null
             return null;
-        elements[t] = null;
-        tail = t;
-        return result;
+        elements[t] = null; // 将当前尾指针处置为空
+        tail = t; // tail指向新的尾指针处
+        return result; // 返回取得的元素
     }
 
     /**
