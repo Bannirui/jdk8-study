@@ -82,13 +82,13 @@ public class LongAdder extends Striped64 implements Serializable {
      * @param x the value to add
      */
     public void add(long x) {
-        Cell[] as; long b, v; int m; Cell a;
-        if ((as = cells) != null || !casBase(b = base, b + x)) {
-            boolean uncontended = true;
+        Cell[] as; long b, v; int m; Cell a; // as是striped64中的cells属性 b是striped64中的base属性 v是当前线程hash到的Cell中存储的值 m是cells长度减去1 作为hash时候作为掩码使用 a是当前线程hash到的Cell
+        if ((as = cells) != null || !casBase(b = base, b + x)) { // 进这个if分支的条件 条件1：cells不为空 说明出现过竞争 cells已经创建 条件2：base的cas操作失败 说明其它线程先一步修改了base 正在出现竞争
+            boolean uncontended = true; // true表示当前竞争还不激烈 false表示竞争激烈，多个线程hash到同一个Cell，可能要扩容
             if (as == null || (m = as.length - 1) < 0 ||
-                (a = as[getProbe() & m]) == null ||
-                !(uncontended = a.cas(v = a.value, v + x)))
-                longAccumulate(x, null, uncontended);
+                (a = as[getProbe() & m]) == null || // getProbe()方法返回的是线程中的threadLocalRandomProbe字段 它是通过随机数生成的一个值，对于一个确定的线程这个值是固定的
+                !(uncontended = a.cas(v = a.value, v + x))) //  进这个if分支的条件 条件1：cells为空 说明是从上面if的条件2走到这边 正在出现竞争 还没创建好cells数组 条件2：暂时先不管 条件3：前线程所在的Cell为空，说明当前线程还没有更新过Cell，应初始化一个Cell 条件4：更新当前线程所在的Cell失败，说明现在竞争很激烈，多个线程hash到了同一个Cell，应扩容
+                longAccumulate(x, null, uncontended); // 调用Striped64中的方法处理
         }
     }
 
@@ -117,10 +117,10 @@ public class LongAdder extends Striped64 implements Serializable {
      */
     public long sum() {
         Cell[] as = cells; Cell a;
-        long sum = base;
-        if (as != null) {
-            for (int i = 0; i < as.length; ++i) {
-                if ((a = as[i]) != null)
+        long sum = base; // sum初始等于base
+        if (as != null) { // 如果cells不为空
+            for (int i = 0; i < as.length; ++i) { // 遍历所有的Cell
+                if ((a = as[i]) != null) // 如果所在的Cell不为空，就把它的value累加到sum中
                     sum += a.value;
             }
         }
