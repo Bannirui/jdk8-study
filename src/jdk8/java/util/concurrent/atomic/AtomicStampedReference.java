@@ -70,7 +70,7 @@ public class AtomicStampedReference<V> {
      * @param initialRef the initial reference
      * @param initialStamp the initial stamp
      */
-    public AtomicStampedReference(V initialRef, int initialStamp) {
+    public AtomicStampedReference(V initialRef, int initialStamp) { // 构造方法需要传入初始值和初始版本号
         pair = Pair.of(initialRef, initialStamp);
     }
 
@@ -146,13 +146,13 @@ public class AtomicStampedReference<V> {
                                  V   newReference,
                                  int expectedStamp,
                                  int newStamp) {
-        Pair<V> current = pair;
+        Pair<V> current = pair; // 取当前的元素值-版本号对
         return
-            expectedReference == current.reference &&
-            expectedStamp == current.stamp &&
-            ((newReference == current.reference &&
-              newStamp == current.stamp) ||
-             casPair(current, Pair.of(newReference, newStamp)));
+            expectedReference == current.reference && // 引用没变
+            expectedStamp == current.stamp && // 版本号没变
+            ((newReference == current.reference && // 新引用等于旧引用
+              newStamp == current.stamp) || // 新版本号等于旧版本号
+             casPair(current, Pair.of(newReference, newStamp))); // 构造新pair对象并且cas更新
     }
 
     /**
@@ -190,12 +190,12 @@ public class AtomicStampedReference<V> {
 
     // Unsafe mechanics
 
-    private static final sun.misc.Unsafe UNSAFE = sun.misc.Unsafe.getUnsafe();
+    private static final sun.misc.Unsafe UNSAFE = sun.misc.Unsafe.getUnsafe(); // Unsafe实例
     private static final long pairOffset =
-        objectFieldOffset(UNSAFE, "pair", AtomicStampedReference.class);
+        objectFieldOffset(UNSAFE, "pair", AtomicStampedReference.class); // 获取AtomicStampedReference对象中pair属性的偏移量
 
     private boolean casPair(Pair<V> cmp, Pair<V> val) {
-        return UNSAFE.compareAndSwapObject(this, pairOffset, cmp, val);
+        return UNSAFE.compareAndSwapObject(this, pairOffset, cmp, val); // cas更新pair引用为新引用
     }
 
     static long objectFieldOffset(sun.misc.Unsafe UNSAFE,
