@@ -11,14 +11,15 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class AtomicIntegerTest {
 
+    /**
+     * @author dingrui
+     * @date 2021/2/1
+     * @return
+     * @description 无参构造方法
+     */
     @Test
     public void test1(){
         AtomicInteger atomicInteger = new AtomicInteger();
-        int i = atomicInteger.get();
-        atomicInteger.set(2);
-        int j = atomicInteger.get();
-        int l = atomicInteger.getAndIncrement();
-
         System.out.println();
     }
 
