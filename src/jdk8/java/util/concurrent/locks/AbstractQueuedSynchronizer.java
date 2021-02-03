@@ -379,21 +379,21 @@ public abstract class AbstractQueuedSynchronizer
      */
     static final class Node {
         /** Marker to indicate a node is waiting in shared mode */
-        static final Node SHARED = new Node();
+        static final Node SHARED = new Node(); // 标识一个节点是共享模式
         /** Marker to indicate a node is waiting in exclusive mode */
-        static final Node EXCLUSIVE = null;
+        static final Node EXCLUSIVE = null; // 标识一个节点是互斥模式
 
         /** waitStatus value to indicate thread has cancelled */
-        static final int CANCELLED =  1;
+        static final int CANCELLED =  1; // 标识线程已经取消
         /** waitStatus value to indicate successor's thread needs unparking */
-        static final int SIGNAL    = -1;
+        static final int SIGNAL    = -1; // 标识后继节点需要唤醒
         /** waitStatus value to indicate thread is waiting on condition */
-        static final int CONDITION = -2;
+        static final int CONDITION = -2; // 标识线程等待在一个条件上
         /**
          * waitStatus value to indicate the next acquireShared should
          * unconditionally propagate
          */
-        static final int PROPAGATE = -3;
+        static final int PROPAGATE = -3; // 标识后面的共享锁需要无条件的传播（共享锁需要连续唤醒读的线程）
 
         /**
          * Status field, taking on only the values:
@@ -429,7 +429,7 @@ public abstract class AbstractQueuedSynchronizer
          * CONDITION for condition nodes.  It is modified using CAS
          * (or when possible, unconditional volatile writes).
          */
-        volatile int waitStatus;
+        volatile int waitStatus; // 当前节点保存的线程对应的等待状态
 
         /**
          * Link to predecessor node that current node/thread relies on
@@ -442,7 +442,7 @@ public abstract class AbstractQueuedSynchronizer
          * cancelled thread never succeeds in acquiring, and a thread only
          * cancels itself, not any other node.
          */
-        volatile Node prev;
+        volatile Node prev; // 前一个节点
 
         /**
          * Link to the successor node that the current node/thread
@@ -457,13 +457,13 @@ public abstract class AbstractQueuedSynchronizer
          * point to the node itself instead of null, to make life
          * easier for isOnSyncQueue.
          */
-        volatile Node next;
+        volatile Node next; // 后一个节点
 
         /**
          * The thread that enqueued this node.  Initialized on
          * construction and nulled out after use.
          */
-        volatile Thread thread;
+        volatile Thread thread; // 当前节点保存的线程
 
         /**
          * Link to next node waiting on condition, or the special
@@ -475,12 +475,12 @@ public abstract class AbstractQueuedSynchronizer
          * we save a field by using special value to indicate shared
          * mode.
          */
-        Node nextWaiter;
+        Node nextWaiter; // 下一个等待在条件上的节点（Condition锁时使用）
 
         /**
          * Returns true if node is waiting in shared mode.
          */
-        final boolean isShared() {
+        final boolean isShared() { // 是否是共享模式
             return nextWaiter == SHARED;
         }
 
@@ -491,7 +491,7 @@ public abstract class AbstractQueuedSynchronizer
          *
          * @return the predecessor of this node
          */
-        final Node predecessor() throws NullPointerException {
+        final Node predecessor() throws NullPointerException { // 获取前一个节点
             Node p = prev;
             if (p == null)
                 throw new NullPointerException();
@@ -503,12 +503,12 @@ public abstract class AbstractQueuedSynchronizer
         }
 
         Node(Thread thread, Node mode) {     // Used by addWaiter
-            this.nextWaiter = mode;
+            this.nextWaiter = mode; // 把共享模式还是互斥模式存储到nextWaiter这个字段里面
             this.thread = thread;
         }
 
         Node(Thread thread, int waitStatus) { // Used by Condition
-            this.waitStatus = waitStatus;
+            this.waitStatus = waitStatus; // 等待的状态，在Condition中使用
             this.thread = thread;
         }
     }
@@ -519,18 +519,18 @@ public abstract class AbstractQueuedSynchronizer
      * If head exists, its waitStatus is guaranteed not to be
      * CANCELLED.
      */
-    private transient volatile Node head;
+    private transient volatile Node head; // 队列的头节点
 
     /**
      * Tail of the wait queue, lazily initialized.  Modified only via
      * method enq to add new wait node.
      */
-    private transient volatile Node tail;
+    private transient volatile Node tail; // 队列的尾节点
 
     /**
      * The synchronization state.
      */
-    private volatile int state;
+    private volatile int state; // 控制加锁解锁的状态变量
 
     /**
      * Returns the current value of synchronization state.
@@ -561,7 +561,7 @@ public abstract class AbstractQueuedSynchronizer
      * @return {@code true} if successful. False return indicates that the actual
      *         value was not equal to the expected value.
      */
-    protected final boolean compareAndSetState(int expect, int update) {
+    protected final boolean compareAndSetState(int expect, int update) { // 调用unsafe的cas方法原子更新state的值
         // See below for intrinsics setup to support this
         return unsafe.compareAndSwapInt(this, stateOffset, expect, update);
     }
@@ -1072,7 +1072,7 @@ public abstract class AbstractQueuedSynchronizer
      *         correctly.
      * @throws UnsupportedOperationException if exclusive mode is not supported
      */
-    protected boolean tryAcquire(int arg) {
+    protected boolean tryAcquire(int arg) { // 互斥模式下使用：尝试获取锁
         throw new UnsupportedOperationException();
     }
 
@@ -1098,7 +1098,7 @@ public abstract class AbstractQueuedSynchronizer
      *         correctly.
      * @throws UnsupportedOperationException if exclusive mode is not supported
      */
-    protected boolean tryRelease(int arg) {
+    protected boolean tryRelease(int arg) { // 互斥模式下使用：尝试释放锁
         throw new UnsupportedOperationException();
     }
 
@@ -1134,7 +1134,7 @@ public abstract class AbstractQueuedSynchronizer
      *         correctly.
      * @throws UnsupportedOperationException if shared mode is not supported
      */
-    protected int tryAcquireShared(int arg) {
+    protected int tryAcquireShared(int arg) { // 共享模式下使用：尝试获取锁
         throw new UnsupportedOperationException();
     }
 
@@ -1159,7 +1159,7 @@ public abstract class AbstractQueuedSynchronizer
      *         correctly.
      * @throws UnsupportedOperationException if shared mode is not supported
      */
-    protected boolean tryReleaseShared(int arg) {
+    protected boolean tryReleaseShared(int arg) { // 共享模式下使用：尝试释放锁
         throw new UnsupportedOperationException();
     }
 
@@ -1178,7 +1178,7 @@ public abstract class AbstractQueuedSynchronizer
      *         {@code false} otherwise
      * @throws UnsupportedOperationException if conditions are not supported
      */
-    protected boolean isHeldExclusively() {
+    protected boolean isHeldExclusively() { // 如果当前线程独占着锁 返回true
         throw new UnsupportedOperationException();
     }
 
@@ -2257,25 +2257,25 @@ public abstract class AbstractQueuedSynchronizer
      * are at it, we do the same for other CASable fields (which could
      * otherwise be done with atomic field updaters).
      */
-    private static final Unsafe unsafe = Unsafe.getUnsafe();
-    private static final long stateOffset;
-    private static final long headOffset;
-    private static final long tailOffset;
-    private static final long waitStatusOffset;
-    private static final long nextOffset;
+    private static final Unsafe unsafe = Unsafe.getUnsafe(); // 获取Unsafe类的实例 这种方式仅限于jdk自己使用 普通用户是无法这样调用的 getUnsafe()方法会判断类加载器是否是BootStrap
+    private static final long stateOffset; // 状态变量state的偏移量
+    private static final long headOffset; // 头节点的偏移量
+    private static final long tailOffset; // 尾节点的偏移量
+    private static final long waitStatusOffset; // 等待状态的偏移量（Node的属性）
+    private static final long nextOffset; // 下一个节点的偏移量（Node的属性）
 
     static {
         try {
             stateOffset = unsafe.objectFieldOffset
-                (AbstractQueuedSynchronizer.class.getDeclaredField("state"));
+                (AbstractQueuedSynchronizer.class.getDeclaredField("state")); // 获取state的偏移量
             headOffset = unsafe.objectFieldOffset
-                (AbstractQueuedSynchronizer.class.getDeclaredField("head"));
+                (AbstractQueuedSynchronizer.class.getDeclaredField("head")); // 获取head的偏移量
             tailOffset = unsafe.objectFieldOffset
-                (AbstractQueuedSynchronizer.class.getDeclaredField("tail"));
+                (AbstractQueuedSynchronizer.class.getDeclaredField("tail")); // 获取tail的偏移量
             waitStatusOffset = unsafe.objectFieldOffset
-                (Node.class.getDeclaredField("waitStatus"));
+                (Node.class.getDeclaredField("waitStatus")); // 获取waitStatus的偏移量
             nextOffset = unsafe.objectFieldOffset
-                (Node.class.getDeclaredField("next"));
+                (Node.class.getDeclaredField("next")); // 获取next的偏移量
 
         } catch (Exception ex) { throw new Error(ex); }
     }
