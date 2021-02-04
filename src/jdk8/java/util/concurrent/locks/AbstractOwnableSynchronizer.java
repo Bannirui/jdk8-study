@@ -70,7 +70,7 @@ public abstract class AbstractOwnableSynchronizer
      * {@code volatile} field accesses.
      * @param thread the owner thread
      */
-    protected final void setExclusiveOwnerThread(Thread thread) {
+    protected final void setExclusiveOwnerThread(Thread thread) { // 设置独占线程
         exclusiveOwnerThread = thread;
     }
 
@@ -80,7 +80,7 @@ public abstract class AbstractOwnableSynchronizer
      * impose any synchronization or {@code volatile} field accesses.
      * @return the owner thread
      */
-    protected final Thread getExclusiveOwnerThread() {
+    protected final Thread getExclusiveOwnerThread() { // 获取当前独占线程
         return exclusiveOwnerThread;
     }
 }
