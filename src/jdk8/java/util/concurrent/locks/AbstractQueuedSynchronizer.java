@@ -602,7 +602,7 @@ public abstract class AbstractQueuedSynchronizer
      * @param mode Node.EXCLUSIVE for exclusive, Node.SHARED for shared
      * @return the new node
      */
-    private Node addWaiter(Node mode) { // 线程入队
+    private Node addWaiter(Node mode) { // 线程入队 返回新入队的线程节点
         Node node = new Node(Thread.currentThread(), mode); // 新建一个节点
         // Try the fast path of enq; backup to full enq on failure // 先尝试将新节点加到尾节点后面 如果成功了就返回新节点 如果没成功就调用enq()方法不断尝试
         Node pred = tail; // 尾节点
@@ -667,7 +667,7 @@ public abstract class AbstractQueuedSynchronizer
      * propagation. (Note: For exclusive mode, release just amounts
      * to calling unparkSuccessor of head if it needs signal.)
      */
-    private void doReleaseShared() {
+    private void doReleaseShared() { // 该方法只会唤醒一个节点
         /*
          * Ensure that a release propagates, even if there are other
          * in-progress acquires/releases.  This proceeds in the usual
@@ -683,16 +683,16 @@ public abstract class AbstractQueuedSynchronizer
             Node h = head;
             if (h != null && h != tail) {
                 int ws = h.waitStatus;
-                if (ws == Node.SIGNAL) {
+                if (ws == Node.SIGNAL) { // 如果头节点状态为SIGNAL，说明要唤醒下一个节点
                     if (!compareAndSetWaitStatus(h, Node.SIGNAL, 0))
                         continue;            // loop to recheck cases
-                    unparkSuccessor(h);
+                    unparkSuccessor(h); // 唤醒下一个节点
                 }
                 else if (ws == 0 &&
-                         !compareAndSetWaitStatus(h, 0, Node.PROPAGATE))
+                         !compareAndSetWaitStatus(h, 0, Node.PROPAGATE)) // 把头节点的状态改为PROPAGATE成功才会跳到下面的if
                     continue;                // loop on failed CAS
             }
-            if (h == head)                   // loop if head changed
+            if (h == head)                   // loop if head changed // 如果唤醒后head没变，则跳出循环
                 break;
         }
     }
@@ -706,8 +706,8 @@ public abstract class AbstractQueuedSynchronizer
      * @param propagate the return value from a tryAcquireShared
      */
     private void setHeadAndPropagate(Node node, int propagate) {
-        Node h = head; // Record old head for check below
-        setHead(node);
+        Node h = head; // Record old head for check below // 旧的头节点
+        setHead(node); // 将当前的节点设置为新的头节点(头节点是虚节点)
         /*
          * Try to signal next queued node if:
          *   Propagation was indicated by caller,
@@ -725,10 +725,10 @@ public abstract class AbstractQueuedSynchronizer
          * anyway.
          */
         if (propagate > 0 || h == null || h.waitStatus < 0 ||
-            (h = head) == null || h.waitStatus < 0) {
-            Node s = node.next;
-            if (s == null || s.isShared())
-                doReleaseShared();
+            (h = head) == null || h.waitStatus < 0) { // 如果旧的头节点或新的头节点为空或者其等待状态小于0（表示状态为SIGNAL/PROPAGATE） 说明需要传播
+            Node s = node.next; // 取下一个节点
+            if (s == null || s.isShared()) // 如果下一个节点为空，或者是需要获取读锁的节点
+                doReleaseShared(); // 唤醒下一个节点
         }
     }
 
@@ -946,25 +946,25 @@ public abstract class AbstractQueuedSynchronizer
      * @param arg the acquire argument
      */
     private void doAcquireShared(int arg) {
-        final Node node = addWaiter(Node.SHARED);
+        final Node node = addWaiter(Node.SHARED); // 加到AQS队列中
         boolean failed = true;
         try {
             boolean interrupted = false;
             for (;;) {
-                final Node p = node.predecessor();
-                if (p == head) {
-                    int r = tryAcquireShared(arg);
-                    if (r >= 0) {
-                        setHeadAndPropagate(node, r);
+                final Node p = node.predecessor(); // 当前节点的前一个节点
+                if (p == head) { // AQS队列中的head头节点是虚节点 如果当前节点的前一个节点是head节点 说明当前节点就是第一个排队节点
+                    int r = tryAcquireShared(arg); // 当前节点线程再次尝试获取读锁 获锁成功返回1 获锁失败返回-1
+                    if (r >= 0) { // 如果r是1 r>=0 说明已经获锁成功
+                        setHeadAndPropagate(node, r); // 节点后移并传播 传播即唤醒后面连续的读节点
                         p.next = null; // help GC
                         if (interrupted)
                             selfInterrupt();
                         failed = false;
                         return;
                     }
-                }
+                } // 当前节点的线程没有获取到锁 代码走到这有两种情况 1：当前节点的前一个节点不是head 也就是说在AQS队列中当前节点前面还有线程在排队 2：当前节点是AQS队列中第一个排队节点但是获锁失败了
                 if (shouldParkAfterFailedAcquire(p, node) &&
-                    parkAndCheckInterrupt())
+                    parkAndCheckInterrupt()) // 将当前节点的线程阻塞 并等待被唤醒
                     interrupted = true;
             }
         } finally {
@@ -1264,7 +1264,7 @@ public abstract class AbstractQueuedSynchronizer
                 unparkSuccessor(h);
             return true;
         }
-        return false;
+        return false; // 尝试去锁失败返回false
     }
 
     /**
@@ -1279,8 +1279,8 @@ public abstract class AbstractQueuedSynchronizer
      *        and can represent anything you like.
      */
     public final void acquireShared(int arg) {
-        if (tryAcquireShared(arg) < 0)
-            doAcquireShared(arg);
+        if (tryAcquireShared(arg) < 0) // 尝试获取共享锁 获锁成功返回1 获锁失败返回-1
+            doAcquireShared(arg); // 进到这里说明上面获锁失败 就可能要排队
     }
 
     /**
@@ -1338,11 +1338,11 @@ public abstract class AbstractQueuedSynchronizer
      * @return the value returned from {@link #tryReleaseShared}
      */
     public final boolean releaseShared(int arg) {
-        if (tryReleaseShared(arg)) {
-            doReleaseShared();
-            return true;
+        if (tryReleaseShared(arg)) { // 如果尝试释放锁成功 就唤醒下一个节点
+            doReleaseShared(); // 唤醒下一个节点
+            return true; // 释放锁成功 返回true
         }
-        return false;
+        return false; // 尝试释放锁失败 释放锁失败 返回false
     }
 
     // Queue inspection methods
