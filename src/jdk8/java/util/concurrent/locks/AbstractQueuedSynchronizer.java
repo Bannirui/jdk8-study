@@ -288,7 +288,7 @@ import sun.misc.Unsafe;
  */
 public abstract class AbstractQueuedSynchronizer
     extends AbstractOwnableSynchronizer
-    implements java.io.Serializable { // AQS值得关注的几个点：1，状态变量state的玩法 2，AQS队列 3，Condition队列 4，模版方法 5，需要子类实现的方法
+    implements java.io.Serializable { // AQS值得关注的几个点：1，状态变量state的玩法 2，AQS队列 3，Condition队列 4，模板方法 5，需要子类实现的方法
 
     private static final long serialVersionUID = 7373984972572414691L;
 
