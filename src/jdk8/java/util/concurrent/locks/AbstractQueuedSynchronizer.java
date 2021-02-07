@@ -288,7 +288,7 @@ import sun.misc.Unsafe;
  */
 public abstract class AbstractQueuedSynchronizer
     extends AbstractOwnableSynchronizer
-    implements java.io.Serializable {
+    implements java.io.Serializable { // AQS值得关注的几个点：1，状态变量state的玩法 2，AQS队列 3，Condition队列 4，模版方法 5，需要子类实现的方法
 
     private static final long serialVersionUID = 7373984972572414691L;
 
@@ -530,7 +530,7 @@ public abstract class AbstractQueuedSynchronizer
     /**
      * The synchronization state.
      */
-    private volatile int state; // 控制加锁解锁的状态变量
+    private volatile int state; // 控制加锁解锁的状态变量 具体用途：1，互斥锁：当AQS只实现互斥锁的时候 cas更新state从0到1就获取了锁 可重入是通过对state+1实现的 2，互斥锁+共享锁：当AQS实现互斥+共享的锁的时候 低16位存储互斥锁状态 高16位存储共享锁状态 主要用于实现读写锁 2.1，互斥锁是一种独占锁，每次只允许一个线程独占，且当一个线程独占时，其它线程将无法再获取互斥锁及共享锁，但是它自己可以获取共享锁  2.2，共享锁同时允许多个线程占有，只要有一个线程占有了共享锁，所有线程（包括自己）都将无法再获取互斥锁，但是可以获取共享锁
 
     /**
      * Returns the current value of synchronization state.
@@ -1183,7 +1183,7 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Acquires in exclusive mode, ignoring interrupts.  Implemented
+     * Acquires in exclusive mode, ignoring interrupts.  Implemented // 获取互斥锁
      * by invoking at least once {@link #tryAcquire},
      * returning on success.  Otherwise the thread is queued, possibly
      * repeatedly blocking and unblocking, invoking {@link
@@ -1194,14 +1194,14 @@ public abstract class AbstractQueuedSynchronizer
      *        {@link #tryAcquire} but is otherwise uninterpreted and
      *        can represent anything you like.
      */
-    public final void acquire(int arg) {
+    public final void acquire(int arg) { // 获取互斥锁 tryAcquire(arg)由子类关注实现
         if (!tryAcquire(arg) && // 尝试获取锁
             acquireQueued(addWaiter(Node.EXCLUSIVE), arg)) // 如果尝试获取锁失败了就会进入acquireQueued()方法进行排队 这个地方addWaiter()方法传入的节点模式为独占模式
             selfInterrupt(); // 中断线程
     }
 
     /**
-     * Acquires in exclusive mode, aborting if interrupted.
+     * Acquires in exclusive mode, aborting if interrupted. // 获取互斥锁可中断
      * Implemented by first checking interrupt status, then invoking
      * at least once {@link #tryAcquire}, returning on
      * success.  Otherwise the thread is queued, possibly repeatedly
@@ -1214,7 +1214,7 @@ public abstract class AbstractQueuedSynchronizer
      *        can represent anything you like.
      * @throws InterruptedException if the current thread is interrupted
      */
-    public final void acquireInterruptibly(int arg)
+    public final void acquireInterruptibly(int arg) // 获取互斥锁可中断
             throws InterruptedException {
         if (Thread.interrupted())
             throw new InterruptedException();
@@ -1248,7 +1248,7 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Releases in exclusive mode.  Implemented by unblocking one or
+     * Releases in exclusive mode.  Implemented by unblocking one or // 释放互斥锁
      * more threads if {@link #tryRelease} returns true.
      * This method can be used to implement method {@link Lock#unlock}.
      *
@@ -1257,7 +1257,7 @@ public abstract class AbstractQueuedSynchronizer
      *        can represent anything you like.
      * @return the value returned from {@link #tryRelease}
      */
-    public final boolean release(int arg) {
+    public final boolean release(int arg) { // 释放互斥锁
         if (tryRelease(arg)) { // 调用AQS实现的tryRelease()方法释放锁
             Node h = head; // 头节点
             if (h != null && h.waitStatus != 0) // 如果头节点不为空，且等待状态不是0，就唤醒下一个节点 在每个节点阻塞之前会把其上一个节点的等待状态设为SIGNAL（-1） 所以，SIGNAL的准确理解应该是唤醒下一个等待的线程
@@ -1268,7 +1268,7 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Acquires in shared mode, ignoring interrupts.  Implemented by
+     * Acquires in shared mode, ignoring interrupts.  Implemented by // 获取共享锁
      * first invoking at least once {@link #tryAcquireShared},
      * returning on success.  Otherwise the thread is queued, possibly
      * repeatedly blocking and unblocking, invoking {@link
@@ -1278,13 +1278,13 @@ public abstract class AbstractQueuedSynchronizer
      *        {@link #tryAcquireShared} but is otherwise uninterpreted
      *        and can represent anything you like.
      */
-    public final void acquireShared(int arg) {
+    public final void acquireShared(int arg) { // 获取共享锁
         if (tryAcquireShared(arg) < 0) // 尝试获取共享锁 获锁成功返回1 获锁失败返回-1
             doAcquireShared(arg); // 进到这里说明上面获锁失败 就可能要排队
     }
 
     /**
-     * Acquires in shared mode, aborting if interrupted.  Implemented
+     * Acquires in shared mode, aborting if interrupted.  Implemented // 获取共享锁可中断
      * by first checking interrupt status, then invoking at least once
      * {@link #tryAcquireShared}, returning on success.  Otherwise the
      * thread is queued, possibly repeatedly blocking and unblocking,
@@ -1296,7 +1296,7 @@ public abstract class AbstractQueuedSynchronizer
      * you like.
      * @throws InterruptedException if the current thread is interrupted
      */
-    public final void acquireSharedInterruptibly(int arg)
+    public final void acquireSharedInterruptibly(int arg) // 获取共享锁可中断
             throws InterruptedException {
         if (Thread.interrupted())
             throw new InterruptedException();
@@ -1329,7 +1329,7 @@ public abstract class AbstractQueuedSynchronizer
     }
 
     /**
-     * Releases in shared mode.  Implemented by unblocking one or more
+     * Releases in shared mode.  Implemented by unblocking one or more // 释放共享锁
      * threads if {@link #tryReleaseShared} returns true.
      *
      * @param arg the release argument.  This value is conveyed to
@@ -1337,7 +1337,7 @@ public abstract class AbstractQueuedSynchronizer
      *        and can represent anything you like.
      * @return the value returned from {@link #tryReleaseShared}
      */
-    public final boolean releaseShared(int arg) {
+    public final boolean releaseShared(int arg) { // 释放共享锁
         if (tryReleaseShared(arg)) { // 如果尝试释放锁成功 就唤醒下一个节点
             doReleaseShared(); // 唤醒下一个节点
             return true; // 释放锁成功 返回true
