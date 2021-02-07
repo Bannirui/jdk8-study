@@ -153,7 +153,7 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
  * @since 1.5
  * @author Doug Lea
  */
-public class CountDownLatch {
+public class CountDownLatch { // 没有实现Serializable接口 无法序列化
     /**
      * Synchronization control For CountDownLatch.
      * Uses AQS state to represent count.
@@ -161,27 +161,27 @@ public class CountDownLatch {
     private static final class Sync extends AbstractQueuedSynchronizer {
         private static final long serialVersionUID = 4982264981922014374L;
 
-        Sync(int count) {
-            setState(count);
+        Sync(int count) { // 传入初始次数
+            setState(count); // 对sate状态变量赋值
         }
 
-        int getCount() {
+        int getCount() { // 获取还剩的次数
             return getState();
         }
 
-        protected int tryAcquireShared(int acquires) {
-            return (getState() == 0) ? 1 : -1;
+        protected int tryAcquireShared(int acquires) { // 尝试获取共享锁
+            return (getState() == 0) ? 1 : -1; // 这里state等于0的时候返回的是1，也就是说count减为0的时候获取总是成功 state不等于0的时候返回的是-1，也就是count不为0的时候总是要排队
         }
 
-        protected boolean tryReleaseShared(int releases) {
+        protected boolean tryReleaseShared(int releases) { // 尝试释放锁
             // Decrement count; signal when transition to zero
             for (;;) {
-                int c = getState();
-                if (c == 0)
+                int c = getState(); // state状态变量值
+                if (c == 0) // state=0 已经没有锁了
                     return false;
-                int nextc = c-1;
-                if (compareAndSetState(c, nextc))
-                    return nextc == 0;
+                int nextc = c-1; // state-1
+                if (compareAndSetState(c, nextc)) // cas更新state值
+                    return nextc == 0; // 为0的时候返回true，这时会唤醒后面排队的线程
             }
         }
     }
@@ -195,9 +195,9 @@ public class CountDownLatch {
      *        before threads can pass through {@link #await}
      * @throws IllegalArgumentException if {@code count} is negative
      */
-    public CountDownLatch(int count) {
+    public CountDownLatch(int count) { // 传入初始次数
         if (count < 0) throw new IllegalArgumentException("count < 0");
-        this.sync = new Sync(count);
+        this.sync = new Sync(count); // 初始化同步器Sync
     }
 
     /**
@@ -228,7 +228,7 @@ public class CountDownLatch {
      *         while waiting
      */
     public void await() throws InterruptedException {
-        sync.acquireSharedInterruptibly(1);
+        sync.acquireSharedInterruptibly(1); // 调用同步器Sync Sync调用父类AQS的acquireSharedInterruptibly()方法
     }
 
     /**
@@ -288,7 +288,7 @@ public class CountDownLatch {
      * <p>If the current count equals zero then nothing happens.
      */
     public void countDown() {
-        sync.releaseShared(1);
+        sync.releaseShared(1); // 调用同步器Sync Sync调用父类AQS的释放共享锁方法
     }
 
     /**
