@@ -1743,7 +1743,7 @@ class Thread implements Runnable {
         /**
          * Thread state for a thread which has not yet started.
          */
-        NEW,
+        NEW, // 新建状态 线程还未开始
 
         /**
          * Thread state for a runnable thread.  A thread in the runnable
@@ -1751,7 +1751,7 @@ class Thread implements Runnable {
          * be waiting for other resources from the operating system
          * such as processor.
          */
-        RUNNABLE,
+        RUNNABLE, // 可运行状态 正在运行或者在等待系统资源，比如CPU
 
         /**
          * Thread state for a thread blocked waiting for a monitor lock.
@@ -1760,7 +1760,7 @@ class Thread implements Runnable {
          * reenter a synchronized block/method after calling
          * {@link Object#wait() Object.wait}.
          */
-        BLOCKED,
+        BLOCKED, // 阻塞状态，在等待一个监视器锁（也就是我们常说的synchronized） 或者在调用了Object.wait()方法且被notify()之后也会进入BLOCKED状态
 
         /**
          * Thread state for a waiting thread.
@@ -1781,7 +1781,7 @@ class Thread implements Runnable {
          * that object. A thread that has called <tt>Thread.join()</tt>
          * is waiting for a specified thread to terminate.
          */
-        WAITING,
+        WAITING, // 等待状态，在调用了以下方法后进入此状态 1. Object.wait()无超时的方法后且未被notify()前，如果被notify()了会进入BLOCKED状态 2. Thread.join()无超时的方法后 3. LockSupport.park()无超时的方法后
 
         /**
          * Thread state for a waiting thread with a specified waiting time.
@@ -1795,13 +1795,13 @@ class Thread implements Runnable {
          *   <li>{@link LockSupport#parkUntil LockSupport.parkUntil}</li>
          * </ul>
          */
-        TIMED_WAITING,
+        TIMED_WAITING, // 超时等待状态，在调用了以下方法后会进入超时等待状态 1. Thread.sleep()方法后 2. Object.wait(timeout)方法后且未到超时时间前，如果达到超时了或被notify()了会进入BLOCKED状态 3. Thread.join(timeout)方法后 4. LockSupport.parkNanos(nanos)方法后 5. LockSupport.parkUntil(deadline)方法后
 
         /**
          * Thread state for a terminated thread.
          * The thread has completed execution.
          */
-        TERMINATED;
+        TERMINATED; // 终止状态 线程已经执行完毕
     }
 
     /**

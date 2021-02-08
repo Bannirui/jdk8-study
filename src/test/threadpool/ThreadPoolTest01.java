@@ -9,7 +9,7 @@ import java.util.concurrent.*;
  *@date 2021-01-05
  *@description 线程池源码学习
  */
-public class ThreadPoolTest {
+public class ThreadPoolTest01 {
 
     /**
      * @author dingrui

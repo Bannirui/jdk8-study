@@ -125,7 +125,7 @@ package java.util.concurrent;
  * @since 1.5
  * @author Doug Lea
  */
-public interface Executor {
+public interface Executor { // 线程池顶级接口，只定义了一个执行无返回值任务的方法
 
     /**
      * Executes the given command at some time in the future.  The command
@@ -137,5 +137,5 @@ public interface Executor {
      * accepted for execution
      * @throws NullPointerException if command is null
      */
-    void execute(Runnable command);
+    void execute(Runnable command); // 执行无返回值任务
 }

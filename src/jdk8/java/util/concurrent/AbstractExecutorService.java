@@ -68,7 +68,7 @@ import java.util.*;
  * @since 1.5
  * @author Doug Lea
  */
-public abstract class AbstractExecutorService implements ExecutorService {
+public abstract class AbstractExecutorService implements ExecutorService { // 抽象类，运用模板方法设计模式实现了一部分方法，主要为执行有返回值任务、批量执行任务的方法
 
     /**
      * Returns a {@code RunnableFuture} for the given runnable and default
@@ -98,7 +98,7 @@ public abstract class AbstractExecutorService implements ExecutorService {
      * cancellation of the underlying task
      * @since 1.6
      */
-    protected <T> RunnableFuture<T> newTaskFor(Callable<T> callable) {
+    protected <T> RunnableFuture<T> newTaskFor(Callable<T> callable) { // 普通任务封装成FutureTask
         return new FutureTask<T>(callable);
     }
 
@@ -129,10 +129,10 @@ public abstract class AbstractExecutorService implements ExecutorService {
      * @throws NullPointerException       {@inheritDoc}
      */
     public <T> Future<T> submit(Callable<T> task) {
-        if (task == null) throw new NullPointerException();
-        RunnableFuture<T> ftask = newTaskFor(task);
-        execute(ftask);
-        return ftask;
+        if (task == null) throw new NullPointerException(); // 非空检测
+        RunnableFuture<T> ftask = newTaskFor(task); // 包装成FutureTask
+        execute(ftask); // 交给execute()方法执行
+        return ftask; // 返回futureTask
     }
 
     /**
