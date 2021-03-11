@@ -28,7 +28,7 @@ package java.lang;
 /**
  * Class {@code Object} is the root of the class hierarchy.
  * Every class has {@code Object} as a superclass. All objects,
- * including arrays, implement the methods of this class.
+ * including arrays, implement the methods of this class. Object是java所有类的基类
  *
  * @author  unascribed
  * @see     java.lang.Class
@@ -36,8 +36,8 @@ package java.lang;
  */
 public class Object {
 
-    private static native void registerNatives();
-    static {
+    private static native void registerNatives(); // native修饰表示方法属于原生态方法 不在当前文件中 该方法是由其他语言实现的 java不能对底层操作系统进行调用 所以通过jni接口调用其他语言的实现对底层进行操作 该方法没有方法体 调用是通过静态代码块进行的
+    static { // 静态代码块中的内容 类在初始化的时候一定会先调用 在本机中由其他编程语言写了java.lang.Object.registerNatives的方法 该方法包含对JNI方法的调用
         registerNatives();
     }
 
@@ -60,7 +60,7 @@ public class Object {
      *         class of this object.
      * @jls 15.8.2 Class Literals
      */
-    public final native Class<?> getClass();
+    public final native Class<?> getClass(); // native修饰的原生态方法 返回的是运行时class对象
 
     /**
      * Returns a hash code value for the object. This method is
@@ -97,7 +97,7 @@ public class Object {
      * @see     java.lang.Object#equals(java.lang.Object)
      * @see     java.lang.System#identityHashCode
      */
-    public native int hashCode();
+    public native int hashCode(); // 散列值：根据一定的规则将与对象相关的一些信息映射成一个数值 这些信息包括对象的存储地址 对象的字段等等 散列值用来初步判断对象是否相等 hashCode不相等 两个对象必然不相等 hashCode相等可能是两个不同对象生成了相同的hashCode
 
     /**
      * Indicates whether some other object is "equal to" this one.
@@ -145,7 +145,7 @@ public class Object {
      * @see     #hashCode()
      * @see     java.util.HashMap
      */
-    public boolean equals(Object obj) {
+    public boolean equals(Object obj) { // 比较的是非null引用是否相等 重写equals方法时必须重写hashCode方法 比如在hashMap中
         return (this == obj);
     }
 
@@ -209,7 +209,7 @@ public class Object {
      *               be cloned.
      * @see java.lang.Cloneable
      */
-    protected native Object clone() throws CloneNotSupportedException;
+    protected native Object clone() throws CloneNotSupportedException; // 浅拷贝：只拷贝对象不拷贝对象中的引用 深拷贝：对象以及对象中引用都拷贝
 
     /**
      * Returns a string representation of the object. In general, the
@@ -233,7 +233,7 @@ public class Object {
      * @return  a string representation of the object.
      */
     public String toString() {
-        return getClass().getName() + "@" + Integer.toHexString(hashCode());
+        return getClass().getName() + "@" + Integer.toHexString(hashCode()); // 对象名称+@+无符号数
     }
 
     /**
@@ -266,9 +266,9 @@ public class Object {
      * @throws  IllegalMonitorStateException  if the current thread is not
      *               the owner of this object's monitor.
      * @see        java.lang.Object#notifyAll()
-     * @see        java.lang.Object#wait()
+     * @see        java.lang.Object#wait() synchronized对monitor进行加锁操作 monitor有entry-set和waitting-list entry-set是竞争锁失败的阻塞队列 waitting是持有锁线程主动调用wait方法后进入的阻塞队列
      */
-    public final native void notify();
+    public final native void notify(); // 随机唤醒一个阻塞队列(waitting-list中的线程一定是来自于持有对象的那些线程执行了wait方法才能进入的)等待对象monitor锁的线程 进行监视器锁的竞争 如果竞争失败 那么依然呆在waitting-list中
 
     /**
      * Wakes up all threads that are waiting on this object's monitor. A
@@ -292,7 +292,7 @@ public class Object {
      * @see        java.lang.Object#notify()
      * @see        java.lang.Object#wait()
      */
-    public final native void notifyAll();
+    public final native void notifyAll(); // 唤醒所有阻塞在waitting-list中的所有线程进行锁竞争 如果竞争失败依然还会待在waitting-list阻塞队列中
 
     /**
      * Causes the current thread to wait until either another thread invokes the
@@ -379,7 +379,7 @@ public class Object {
      * @see        java.lang.Object#notify()
      * @see        java.lang.Object#notifyAll()
      */
-    public final native void wait(long timeout) throws InterruptedException;
+    public final native void wait(long timeout) throws InterruptedException; // 持有monitor监视器锁的线程主动放弃锁持有 进入锁的waitting-list 等待被唤醒
 
     /**
      * Causes the current thread to wait until another thread invokes the
