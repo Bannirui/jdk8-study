@@ -44,8 +44,8 @@ import java.util.regex.PatternSyntaxException;
  * string literals in Java programs, such as {@code "abc"}, are
  * implemented as instances of this class.
  * <p>
- * Strings are constant; their values cannot be changed after they
- * are created. String buffers support mutable strings.
+ * Strings are constant; their values cannot be changed after they 字符串一旦创建就不可改变
+ * are created. String buffers support mutable strings. StringBuffer可变字符串
  * Because String objects are immutable they can be shared. For example:
  * <blockquote><pre>
  *     String str = "abc";
@@ -109,12 +109,12 @@ import java.util.regex.PatternSyntaxException;
  */
 
 public final class String
-    implements java.io.Serializable, Comparable<String>, CharSequence {
+    implements java.io.Serializable, Comparable<String>, CharSequence { // String是final修饰的 不能被继承 使用final修饰的好处：1，缓存结果，string传参时不用担心被修改值 2，安全，不会经过一系列操作之后被修改值引发异常 3，性能，不可变的前提下字符串常量池才有意义
     /** The value is used for character storage. */
-    private final char value[];
+    private final char value[]; // 底层的数据结构：字符数组
 
     /** Cache the hash code for the string */
-    private int hash; // Default to 0
+    private int hash; // Default to 0 // 缓存hashCode
 
     /** use serialVersionUID from JDK 1.0.2 for interoperability */
     private static final long serialVersionUID = -6849794470754667710L;
@@ -620,7 +620,7 @@ public final class String
      *          object.
      */
     public int length() {
-        return value.length;
+        return value.length; // 字符串长度 字符数组的长度
     }
 
     /**
@@ -632,7 +632,7 @@ public final class String
      * @since 1.6
      */
     public boolean isEmpty() {
-        return value.length == 0;
+        return value.length == 0; // 根据字符数组长度进行判空
     }
 
     /**
@@ -646,10 +646,10 @@ public final class String
      * <a href="Character.html#unicode">surrogate</a>, the surrogate
      * value is returned.
      *
-     * @param      index   the index of the {@code char} value.
+     * @param      index   the index of the {@code char} value. 字符数组的索引 索引从0开始
      * @return     the {@code char} value at the specified index of this string.
      *             The first {@code char} value is at index {@code 0}.
-     * @exception  IndexOutOfBoundsException  if the {@code index}
+     * @exception  IndexOutOfBoundsException  if the {@code index} 数组越界异常
      *             argument is negative or not less than the length of this
      *             string.
      */
@@ -973,7 +973,7 @@ public final class String
      * @see  #compareTo(String)
      * @see  #equalsIgnoreCase(String)
      */
-    public boolean equals(Object anObject) {
+    public boolean equals(Object anObject) { // 重写了Object的equals方法 字符串的比较本质就是比较两个字符数组
         if (this == anObject) {
             return true;
         }
@@ -1144,7 +1144,7 @@ public final class String
      * </pre></blockquote>
      *
      * @param   anotherString   the {@code String} to be compared.
-     * @return  the value {@code 0} if the argument string is equal to
+     * @return  the value {@code 0} if the argument string is equal to 字符串大小比较结果：0表示相等 负数表示小于 正数表示大于
      *          this string; a value less than {@code 0} if this string
      *          is lexicographically less than the string argument; and a
      *          value greater than {@code 0} if this string is
@@ -1549,28 +1549,28 @@ public final class String
         } else if (fromIndex >= max) {
             // Note: fromIndex might be near -1>>>1.
             return -1;
-        }
+        } // 数组越界校验
 
-        if (ch < Character.MIN_SUPPLEMENTARY_CODE_POINT) {
+        if (ch < Character.MIN_SUPPLEMENTARY_CODE_POINT) { // 1个字符char占用2个字节 如果ch小于2的16次方 绝大多数场景都进这个分支
             // handle most cases here (ch is a BMP code point or a
             // negative value (invalid code point))
             final char[] value = this.value;
-            for (int i = fromIndex; i < max; i++) {
+            for (int i = fromIndex; i < max; i++) { // 遍历字符数组 找到第一个匹配到的字符返回其索引
                 if (value[i] == ch) {
                     return i;
                 }
             }
-            return -1;
+            return -1; // 整个数组遍历完没有找到需要的字符 返回-1表示没找到
         } else {
-            return indexOfSupplementary(ch, fromIndex);
+            return indexOfSupplementary(ch, fromIndex); // 如果需要查找的字符大于2的16次方字节 就会调用这个方法
         }
     }
 
     /**
      * Handles (rare) calls of indexOf with a supplementary character.
      */
-    private int indexOfSupplementary(int ch, int fromIndex) {
-        if (Character.isValidCodePoint(ch)) {
+    private int indexOfSupplementary(int ch, int fromIndex) { // 只有当ch字符大小大于2^16字节的时候才会调用这个方法
+        if (Character.isValidCodePoint(ch)) { // 首先会对字符进行校验 是否是有效字符
             final char[] value = this.value;
             final char hi = Character.highSurrogate(ch);
             final char lo = Character.lowSurrogate(ch);
@@ -1922,15 +1922,15 @@ public final class String
      *             {@code beginIndex} is negative or larger than the
      *             length of this {@code String} object.
      */
-    public String substring(int beginIndex) {
+    public String substring(int beginIndex) { // 截取子串 从指定的索引到最后 [index,最后]
         if (beginIndex < 0) {
             throw new StringIndexOutOfBoundsException(beginIndex);
         }
         int subLen = value.length - beginIndex;
         if (subLen < 0) {
             throw new StringIndexOutOfBoundsException(subLen);
-        }
-        return (beginIndex == 0) ? this : new String(value, beginIndex, subLen);
+        } // 数组越界校验
+        return (beginIndex == 0) ? this : new String(value, beginIndex, subLen); // 如果是从从截取到尾 那就就是整个字符串 返回当前字符串对象
     }
 
     /**
@@ -2023,9 +2023,9 @@ public final class String
      * @return  a string that represents the concatenation of this object's
      *          characters followed by the string argument's characters.
      */
-    public String concat(String str) {
+    public String concat(String str) { // 字符串拼接
         int otherLen = str.length();
-        if (otherLen == 0) {
+        if (otherLen == 0) { // 待拼接的字符串为空 直接返回当前字符串对象
             return this;
         }
         int len = value.length;
@@ -2063,7 +2063,7 @@ public final class String
      * @return  a string derived from this string by replacing every
      *          occurrence of {@code oldChar} with {@code newChar}.
      */
-    public String replace(char oldChar, char newChar) {
+    public String replace(char oldChar, char newChar) { // 字符替换
         if (oldChar != newChar) {
             int len = value.length;
             int i = -1;
@@ -2073,7 +2073,7 @@ public final class String
                 if (val[i] == oldChar) {
                     break;
                 }
-            }
+            } // 先找到第一个需要替换的字符位置 在此之前的都是不需要替换的 直接全部拷贝走 在此之后的字符逐个比较进行替换
             if (i < len) {
                 char buf[] = new char[len];
                 for (int j = 0; j < i; j++) {
@@ -2990,7 +2990,7 @@ public final class String
      *          {@code obj.toString()} is returned.
      * @see     java.lang.Object#toString()
      */
-    public static String valueOf(Object obj) {
+    public static String valueOf(Object obj) { // null判断 调用的是Object的toString方法
         return (obj == null) ? "null" : obj.toString();
     }
 
