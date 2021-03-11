@@ -48,12 +48,12 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
     /**
      * The value is used for character storage.
      */
-    char[] value;
+    char[] value; // 字符数组
 
     /**
      * The count is the number of characters used.
      */
-    int count;
+    int count; // 字符计数 使用的字符数量 这样设计的考量点：(1，首先如果仅仅是字符数组中的字符数量完全没必要维护一个field 鸡肋 2，比如有个场景现在有n个字符 m<n 将字符串长度设置为m 那么只要更新这个count值就行 存储结构的字符数组完全没必要动)
 
     /**
      * This no-arg constructor is necessary for serialization of subclasses.
@@ -65,7 +65,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
      * Creates an AbstractStringBuilder of the specified capacity.
      */
     AbstractStringBuilder(int capacity) {
-        value = new char[capacity];
+        value = new char[capacity]; // 有参构造方法指定了字符数组的长度
     }
 
     /**
@@ -75,7 +75,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
      *          represented by this object
      */
     @Override
-    public int length() {
+    public int length() { // 字符串长度
         return count;
     }
 
@@ -86,8 +86,8 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
      *
      * @return  the current capacity
      */
-    public int capacity() {
-        return value.length;
+    public int capacity() { // 字符数组容量
+        return value.length; // 字符数组的长度 value.length>=count 也就是说capacity>=length
     }
 
     /**
@@ -97,7 +97,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
      * larger of:
      * <ul>
      * <li>The {@code minimumCapacity} argument.
-     * <li>Twice the old capacity, plus {@code 2}.
+     * <li>Twice the old capacity, plus {@code 2}. 扩容机制：n*2+2
      * </ul>
      * If the {@code minimumCapacity} argument is nonpositive, this
      * method takes no action and simply returns.
@@ -107,7 +107,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
      * @param   minimumCapacity   the minimum desired capacity.
      */
     public void ensureCapacity(int minimumCapacity) {
-        if (minimumCapacity > 0)
+        if (minimumCapacity > 0) // 如果参数小于0 啥都不用干
             ensureCapacityInternal(minimumCapacity);
     }
 
@@ -145,12 +145,12 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
      * @throws OutOfMemoryError if minCapacity is less than zero or
      *         greater than Integer.MAX_VALUE
      */
-    private int newCapacity(int minCapacity) {
+    private int newCapacity(int minCapacity) { // 字符数组扩容
         // overflow-conscious code
-        int newCapacity = (value.length << 1) + 2;
+        int newCapacity = (value.length << 1) + 2; // 数组扩容机制：新容量=旧容量*2+2
         if (newCapacity - minCapacity < 0) {
-            newCapacity = minCapacity;
-        }
+            newCapacity = minCapacity; // 经过一次扩容之后 容量还没没有达到要求 直接用需要的容量大小
+        } // 容量大小进行校验上下限 一旦有不满足 就使用被允许的最大容量
         return (newCapacity <= 0 || MAX_ARRAY_SIZE - newCapacity < 0)
             ? hugeCapacity(minCapacity)
             : newCapacity;
@@ -496,7 +496,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
         value[c++] = 'u';
         value[c++] = 'l';
         value[c++] = 'l';
-        count = c;
+        count = c; // 一旦value这个字符数组变更 count势必跟着变更 但是count的更新不代表一定要更新value字符数组
         return this;
     }
 
@@ -751,7 +751,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
      *             is negative, greater than {@code length()}, or
      *             greater than {@code end}.
      */
-    public AbstractStringBuilder delete(int start, int end) {
+    public AbstractStringBuilder delete(int start, int end) { // 字符删除 (start, end] 左开右闭
         if (start < 0)
             throw new StringIndexOutOfBoundsException(start);
         if (end > count)
@@ -846,7 +846,7 @@ abstract class AbstractStringBuilder implements Appendable, CharSequence {
      *             is negative, greater than {@code length()}, or
      *             greater than {@code end}.
      */
-    public AbstractStringBuilder replace(int start, int end, String str) {
+    public AbstractStringBuilder replace(int start, int end, String str) { // 字符串替换 (start, end]左开右闭
         if (start < 0)
             throw new StringIndexOutOfBoundsException(start);
         if (start > count)
