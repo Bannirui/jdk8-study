@@ -28,7 +28,7 @@ package java.lang;
 import java.util.Arrays;
 
 /**
- * A thread-safe, mutable sequence of characters.
+ * A thread-safe, mutable sequence of characters. 线程安全可变字符序列
  * A string buffer is like a {@link String}, but can be modified. At any
  * point in time it contains some particular sequence of characters, but
  * the length and content of the sequence can be changed through certain
@@ -103,7 +103,7 @@ import java.util.Arrays;
      * A cache of the last value returned by toString. Cleared
      * whenever the StringBuffer is modified.
      */
-    private transient char[] toStringCache;
+    private transient char[] toStringCache; // 缓存的是sb的toString方法结果 如果sb被修改 那么缓存会被置空
 
     /** use serialVersionUID from JDK 1.0.2 for interoperability */
     static final long serialVersionUID = 3388685877147921107L;
@@ -112,7 +112,7 @@ import java.util.Arrays;
      * Constructs a string buffer with no characters in it and an
      * initial capacity of 16 characters.
      */
-    public StringBuffer() {
+    public StringBuffer() { // 无参构造方法 指定一个长度为16的字符数组
         super(16);
     }
 
@@ -135,7 +135,7 @@ import java.util.Arrays;
      *
      * @param   str   the initial contents of the buffer.
      */
-    public StringBuffer(String str) {
+    public StringBuffer(String str) { // 传入字符串 字符数组长度=字符串长度+16
         super(str.length() + 16);
         append(str);
     }
@@ -665,7 +665,7 @@ import java.util.Arrays;
 
     @Override
     public synchronized String toString() {
-        if (toStringCache == null) {
+        if (toStringCache == null) { // toStringCache是toString()方法的缓存 如果sb没被修改 那么这个缓存表示的就是上一次toString方法的结果 如果sb被修改那么这个缓存会被置空
             toStringCache = Arrays.copyOfRange(value, 0, count);
         }
         return new String(toStringCache, true);
