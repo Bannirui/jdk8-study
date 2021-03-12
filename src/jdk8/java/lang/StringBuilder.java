@@ -85,7 +85,7 @@ public final class StringBuilder
      * Constructs a string builder with no characters in it and an
      * initial capacity of 16 characters.
      */
-    public StringBuilder() {
+    public StringBuilder() { // 无参构造方法 指定字符数组的长度为16
         super(16);
     }
 
@@ -108,7 +108,7 @@ public final class StringBuilder
      *
      * @param   str   the initial contents of the buffer.
      */
-    public StringBuilder(String str) {
+    public StringBuilder(String str) { // 字符数组长度=字符串长度+16 跟StringBuffer一样
         super(str.length() + 16);
         append(str);
     }
@@ -402,7 +402,7 @@ public final class StringBuilder
     }
 
     @Override
-    public String toString() {
+    public String toString() { // 对比StringBuffer的区别 没有维护toStringCache缓存
         // Create a copy, don't share the array
         return new String(value, 0, count);
     }
