@@ -1,4 +1,4 @@
-package test.bool;
+package test.basicwrapper;
 
 import org.junit.Test;
 

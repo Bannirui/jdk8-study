@@ -41,13 +41,13 @@ package java.lang;
  * @see     java.lang.Number
  * @since   JDK1.1
  */
-public final class Byte extends Number implements Comparable<Byte> {
+public final class Byte extends Number implements Comparable<Byte> { // final修饰不可被继承
 
     /**
      * A constant holding the minimum value a {@code byte} can
      * have, -2<sup>7</sup>.
      */
-    public static final byte   MIN_VALUE = -128;
+    public static final byte   MIN_VALUE = -128; // 1 byte=8 bit 二进制最高位为符号为 那么能够表示的区间就是[-2^7, 2^7-1]
 
     /**
      * A constant holding the maximum value a {@code byte} can
@@ -60,7 +60,7 @@ public final class Byte extends Number implements Comparable<Byte> {
      * {@code byte}.
      */
     @SuppressWarnings("unchecked")
-    public static final Class<Byte>     TYPE = (Class<Byte>) Class.getPrimitiveClass("byte");
+    public static final Class<Byte>     TYPE = (Class<Byte>) Class.getPrimitiveClass("byte"); // 对基本类型byte的装箱
 
     /**
      * Returns a new {@code String} object representing the
@@ -74,12 +74,12 @@ public final class Byte extends Number implements Comparable<Byte> {
         return Integer.toString((int)b, 10);
     }
 
-    private static class ByteCache {
+    private static class ByteCache { // 静态内部类 作为缓存使用 Byte是对byte的装箱 byte表示的范围是[-128,127] 共256个元素 初始化的时候将这256个元素全部放到缓存数组中
         private ByteCache(){}
 
-        static final Byte cache[] = new Byte[-(-128) + 127 + 1];
+        static final Byte cache[] = new Byte[-(-128) + 127 + 1]; // 分配一个256容量的数组作为缓存
 
-        static {
+        static { // 静态代码块初始化cache缓存数组中的元素
             for(int i = 0; i < cache.length; i++)
                 cache[i] = new Byte((byte)(i - 128));
         }
@@ -99,7 +99,7 @@ public final class Byte extends Number implements Comparable<Byte> {
      * @since  1.5
      */
     public static Byte valueOf(byte b) {
-        final int offset = 128;
+        final int offset = 128; // 用来计算对应数组脚标
         return ByteCache.cache[(int)b + offset];
     }
 
