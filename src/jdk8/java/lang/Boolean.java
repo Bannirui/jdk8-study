@@ -26,7 +26,7 @@
 package java.lang;
 
 /**
- * The Boolean class wraps a value of the primitive type
+ * The Boolean class wraps a value of the primitive type 除了内部维护了一个原生boolean属性之外 基本都是跟String之间的互相转换
  * {@code boolean} in an object. An object of type
  * {@code Boolean} contains a single field whose type is
  * {@code boolean}.
@@ -146,7 +146,7 @@ public final class Boolean implements java.io.Serializable,
      * @return a {@code Boolean} instance representing {@code b}.
      * @since  1.4
      */
-    public static Boolean valueOf(boolean b) {
+    public static Boolean valueOf(boolean b) { // 创建实例推荐的方式
         return (b ? TRUE : FALSE);
     }
 
@@ -173,7 +173,7 @@ public final class Boolean implements java.io.Serializable,
      * @return the string representation of the specified {@code boolean}
      * @since 1.4
      */
-    public static String toString(boolean b) {
+    public static String toString(boolean b) { // 跟字符串之间的转换
         return b ? "true" : "false";
     }
 
@@ -329,7 +329,7 @@ public final class Boolean implements java.io.Serializable,
      * @see java.util.function.BinaryOperator
      * @since 1.8
      */
-    public static boolean logicalXor(boolean a, boolean b) {
+    public static boolean logicalXor(boolean a, boolean b) { // 逻辑异或
         return a ^ b;
     }
 }
