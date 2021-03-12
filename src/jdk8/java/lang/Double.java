@@ -46,27 +46,27 @@ import sun.misc.DoubleConsts;
  * @author  Joseph D. Darcy
  * @since JDK1.0
  */
-public final class Double extends Number implements Comparable<Double> {
+public final class Double extends Number implements Comparable<Double> { // final修饰不可被继承
     /**
      * A constant holding the positive infinity of type
      * {@code double}. It is equal to the value returned by
      * {@code Double.longBitsToDouble(0x7ff0000000000000L)}.
      */
-    public static final double POSITIVE_INFINITY = 1.0 / 0.0;
+    public static final double POSITIVE_INFINITY = 1.0 / 0.0; // 正无穷 只有浮点型才有无穷 整型不存在无穷 1/0直接抛异常
 
     /**
      * A constant holding the negative infinity of type
      * {@code double}. It is equal to the value returned by
      * {@code Double.longBitsToDouble(0xfff0000000000000L)}.
      */
-    public static final double NEGATIVE_INFINITY = -1.0 / 0.0;
+    public static final double NEGATIVE_INFINITY = -1.0 / 0.0; // 浮点型负无穷
 
     /**
      * A constant holding a Not-a-Number (NaN) value of type
      * {@code double}. It is equivalent to the value returned by
      * {@code Double.longBitsToDouble(0x7ff8000000000000L)}.
      */
-    public static final double NaN = 0.0d / 0.0;
+    public static final double NaN = 0.0d / 0.0; // 非数
 
     /**
      * A constant holding the largest positive finite value of type
@@ -558,7 +558,7 @@ public final class Double extends Number implements Comparable<Double> {
      * @return  {@code true} if the value of the argument is positive
      *          infinity or negative infinity; {@code false} otherwise.
      */
-    public static boolean isInfinite(double v) {
+    public static boolean isInfinite(double v) { // 正无穷或者负无穷
         return (v == POSITIVE_INFINITY) || (v == NEGATIVE_INFINITY);
     }
 
