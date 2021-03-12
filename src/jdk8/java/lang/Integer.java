@@ -49,7 +49,7 @@ import java.lang.annotation.Native;
  * @author  Joseph D. Darcy
  * @since JDK1.0
  */
-public final class Integer extends Number implements Comparable<Integer> {
+public final class Integer extends Number implements Comparable<Integer> { // final修饰不可被继承
     /**
      * A constant holding the minimum value an {@code int} can
      * have, -2<sup>31</sup>.
