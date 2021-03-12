@@ -52,21 +52,21 @@ public final class Float extends Number implements Comparable<Float> {
      * {@code float}. It is equal to the value returned by
      * {@code Float.intBitsToFloat(0x7f800000)}.
      */
-    public static final float POSITIVE_INFINITY = 1.0f / 0.0f;
+    public static final float POSITIVE_INFINITY = 1.0f / 0.0f; // 正无穷
 
     /**
      * A constant holding the negative infinity of type
      * {@code float}. It is equal to the value returned by
      * {@code Float.intBitsToFloat(0xff800000)}.
      */
-    public static final float NEGATIVE_INFINITY = -1.0f / 0.0f;
+    public static final float NEGATIVE_INFINITY = -1.0f / 0.0f; // 负无穷
 
     /**
      * A constant holding a Not-a-Number (NaN) value of type
      * {@code float}.  It is equivalent to the value returned by
      * {@code Float.intBitsToFloat(0x7fc00000)}.
      */
-    public static final float NaN = 0.0f / 0.0f;
+    public static final float NaN = 0.0f / 0.0f; // 非浮点数
 
     /**
      * A constant holding the largest positive finite value of type
