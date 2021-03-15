@@ -73,30 +73,30 @@ import java.util.function.Supplier;
  */
 public class ThreadLocal<T> {
     /**
-     * ThreadLocals rely on per-thread linear-probe hash maps attached
+     * ThreadLocals rely on per-thread linear-probe hash maps attached 线性探测
      * to each thread (Thread.threadLocals and
-     * inheritableThreadLocals).  The ThreadLocal objects act as keys,
+     * inheritableThreadLocals).  The ThreadLocal objects act as keys, ThreadLocal对象为key
      * searched via threadLocalHashCode.  This is a custom hash code
      * (useful only within ThreadLocalMaps) that eliminates collisions
      * in the common case where consecutively constructed ThreadLocals
      * are used by the same threads, while remaining well-behaved in
      * less common cases.
      */
-    private final int threadLocalHashCode = nextHashCode();
+    private final int threadLocalHashCode = nextHashCode(); // 这个hashCode就是存储ThreadLocalMap的散列值
 
     /**
      * The next hash code to be given out. Updated atomically. Starts at
      * zero.
      */
     private static AtomicInteger nextHashCode =
-        new AtomicInteger();
+        new AtomicInteger(); // hashCode从0开始 原子更新
 
     /**
      * The difference between successively generated hash codes - turns
      * implicit sequential thread-local IDs into near-optimally spread
      * multiplicative hash values for power-of-two-sized tables.
      */
-    private static final int HASH_INCREMENT = 0x61c88647;
+    private static final int HASH_INCREMENT = 0x61c88647; // hashCode魔数 nextHashCode值按照这个步进值增加 解决hash冲突的关键
 
     /**
      * Returns the next hash code.
@@ -157,17 +157,17 @@ public class ThreadLocal<T> {
      * @return the current thread's value of this thread-local
      */
     public T get() {
-        Thread t = Thread.currentThread();
-        ThreadLocalMap map = getMap(t);
+        Thread t = Thread.currentThread(); // 当前线程实例对象
+        ThreadLocalMap map = getMap(t); // 获取当前线程的ThreadLocalMap
         if (map != null) {
-            ThreadLocalMap.Entry e = map.getEntry(this);
+            ThreadLocalMap.Entry e = map.getEntry(this); // 根据key=ThreadLocal实例 找对应的value
             if (e != null) {
                 @SuppressWarnings("unchecked")
                 T result = (T)e.value;
                 return result;
             }
         }
-        return setInitialValue();
+        return setInitialValue(); // 获取失败(没有map 或者 有map但是没有对应的value) 就返回一个默认的初始值
     }
 
     /**
@@ -197,7 +197,7 @@ public class ThreadLocal<T> {
      *        this thread-local.
      */
     public void set(T value) {
-        Thread t = Thread.currentThread();
+        Thread t = Thread.currentThread(); // 当前执行线程
         ThreadLocalMap map = getMap(t);
         if (map != null)
             map.set(this, value);
@@ -230,7 +230,7 @@ public class ThreadLocal<T> {
      * @return the map
      */
     ThreadLocalMap getMap(Thread t) {
-        return t.threadLocals;
+        return t.threadLocals; // Thread中维护了一个threadLocals属性 指向的是ThreadLocal中的定制内部类ThreadLocalMap map的key是ThreadLocal实例 value是变量副本 也就是说一个线程可以存在多个这样的key-value 一个线程绑定多个ThreadLocal对象
     }
 
     /**
@@ -271,7 +271,7 @@ public class ThreadLocal<T> {
      * An extension of ThreadLocal that obtains its initial value from
      * the specified {@code Supplier}.
      */
-    static final class SuppliedThreadLocal<T> extends ThreadLocal<T> {
+    static final class SuppliedThreadLocal<T> extends ThreadLocal<T> { // 8增加的内部类 扩展了初始化值的方法
 
         private final Supplier<? extends T> supplier;
 
@@ -295,7 +295,7 @@ public class ThreadLocal<T> {
      * used, stale entries are guaranteed to be removed only when
      * the table starts running out of space.
      */
-    static class ThreadLocalMap {
+    static class ThreadLocalMap { // ThreadLocal定制的HashMap 仅用于维护线程的本地变量
 
         /**
          * The entries in this hash map extend WeakReference, using
@@ -305,11 +305,11 @@ public class ThreadLocal<T> {
          * entry can be expunged from table.  Such entries are referred to
          * as "stale entries" in the code that follows.
          */
-        static class Entry extends WeakReference<ThreadLocal<?>> {
+        static class Entry extends WeakReference<ThreadLocal<?>> { // key是弱引用WeakReference gc时未被引用的entry会被清理
             /** The value associated with this ThreadLocal. */
             Object value;
 
-            Entry(ThreadLocal<?> k, Object v) {
+            Entry(ThreadLocal<?> k, Object v) { // key=ThreadLocal的实例 value=要设置的值
                 super(k);
                 value = v;
             }
@@ -460,27 +460,27 @@ public class ThreadLocal<T> {
 
             Entry[] tab = table;
             int len = tab.length;
-            int i = key.threadLocalHashCode & (len-1);
+            int i = key.threadLocalHashCode & (len-1); // hash槽脚标索引
 
             for (Entry e = tab[i];
                  e != null;
-                 e = tab[i = nextIndex(i, len)]) {
+                 e = tab[i = nextIndex(i, len)]) { // for循环 说明这个map解决hahs冲突的方式是线性法 不是跟HashMap一样的拉链法
                 ThreadLocal<?> k = e.get();
 
-                if (k == key) {
+                if (k == key) { // hash槽中的key就是当前的ThreadLocal 进行值的替换
                     e.value = value;
                     return;
                 }
 
-                if (k == null) {
+                if (k == null) { // hash槽中的key是null 说明原来的ThreadLocal被gc了 replaceStaleEntry方法将其替换
                     replaceStaleEntry(key, value, i);
                     return;
                 }
             }
 
-            tab[i] = new Entry(key, value);
+            tab[i] = new Entry(key, value); // for循环走完都没有找到空的hash槽
             int sz = ++size;
-            if (!cleanSomeSlots(i, sz) && sz >= threshold)
+            if (!cleanSomeSlots(i, sz) && sz >= threshold) // cleanSomeSlots方法进行搜索和清理gc造成的空洞 如果清理完还没有空槽 就扩容
                 rehash();
         }
 
