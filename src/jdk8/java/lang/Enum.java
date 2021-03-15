@@ -53,13 +53,13 @@ import java.io.ObjectStreamException;
  * @since   1.5
  */
 public abstract class Enum<E extends Enum<E>>
-        implements Comparable<E>, Serializable {
+        implements Comparable<E>, Serializable { // 为什么Enum不能指定继承的父类 因为java中是单根继承了 已经继承了Enum 所以不能再指定其他类继承
     /**
      * The name of this enum constant, as declared in the enum declaration.
      * Most programmers should use the {@link #toString} method rather than
      * accessing this field.
      */
-    private final String name;
+    private final String name; // 枚举的名称
 
     /**
      * Returns the name of this enum constant, exactly as declared in its
@@ -86,7 +86,7 @@ public abstract class Enum<E extends Enum<E>>
      * for use by sophisticated enum-based data structures, such as
      * {@link java.util.EnumSet} and {@link java.util.EnumMap}.
      */
-    private final int ordinal;
+    private final int ordinal; // 枚举的顺序
 
     /**
      * Returns the ordinal of this enumeration constant (its position
@@ -114,7 +114,7 @@ public abstract class Enum<E extends Enum<E>>
      *         in the enum declaration, where the initial constant is assigned
      *         an ordinal of zero).
      */
-    protected Enum(String name, int ordinal) {
+    protected Enum(String name, int ordinal) { // protected修饰 只能是子类 枚举类才能访问
         this.name = name;
         this.ordinal = ordinal;
     }
@@ -176,7 +176,7 @@ public abstract class Enum<E extends Enum<E>>
         Enum<?> other = (Enum<?>)o;
         Enum<E> self = this;
         if (self.getClass() != other.getClass() && // optimization
-            self.getDeclaringClass() != other.getDeclaringClass())
+            self.getDeclaringClass() != other.getDeclaringClass()) // compareTo方法只能是同一个枚举类进行比较
             throw new ClassCastException();
         return self.ordinal - other.ordinal;
     }
@@ -241,7 +241,7 @@ public abstract class Enum<E extends Enum<E>>
     /**
      * enum classes cannot have finalize methods.
      */
-    protected final void finalize() { }
+    protected final void finalize() { } // finalize方法不能被重写
 
     /**
      * prevent default deserialization
