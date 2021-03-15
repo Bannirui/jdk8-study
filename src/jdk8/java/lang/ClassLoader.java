@@ -190,10 +190,10 @@ public abstract class ClassLoader {
     /**
      * Encapsulates the set of parallel capable loader types.
      */
-    private static class ParallelLoaders {
+    private static class ParallelLoaders { // 决定指定的类是否具备并行的能力 如果具备并行能力ClassLoader的属性parallelLockMap就会被初始化 这个静态内部类在ClassLoader被加载的时候就初始化了
         private ParallelLoaders() {}
 
-        // the set of parallel capable loader types
+        // the set of parallel capable loader types // 存储具备并行能力的加载器类型集合
         private static final Set<Class<? extends ClassLoader>> loaderTypes =
             Collections.newSetFromMap(
                 new WeakHashMap<Class<? extends ClassLoader>, Boolean>());
@@ -206,7 +206,7 @@ public abstract class ClassLoader {
          * Returns {@code true} is successfully registered; {@code false} if
          * loader's super class is not registered.
          */
-        static boolean register(Class<? extends ClassLoader> c) {
+        static boolean register(Class<? extends ClassLoader> c) { // 将类加载器注册成为一个具备并行能力的类加载器 注册成功返回true 注册失败返回false
             synchronized (loaderTypes) {
                 if (loaderTypes.contains(c.getSuperclass())) {
                     // register the class loader as parallel capable
@@ -226,7 +226,7 @@ public abstract class ClassLoader {
          * Returns {@code true} if the given class loader type is
          * registered as parallel capable.
          */
-        static boolean isRegistered(Class<? extends ClassLoader> c) {
+        static boolean isRegistered(Class<? extends ClassLoader> c) { // 判断类加载器是否具备并行能力
             synchronized (loaderTypes) {
                 return loaderTypes.contains(c);
             }
@@ -237,7 +237,7 @@ public abstract class ClassLoader {
     // class loader is parallel capable.
     // Note: VM also uses this field to decide if the current class loader
     // is parallel capable and the appropriate lock object for class loading.
-    private final ConcurrentHashMap<String, Object> parallelLockMap;
+    private final ConcurrentHashMap<String, Object> parallelLockMap; // 如果当前类加载器具备并行能力 这个属性会被赋值初始化
 
     // Hashtable that maps packages to certs
     private final Map <String, Certificate[]> package2certs;
@@ -273,9 +273,9 @@ public abstract class ClassLoader {
         return null;
     }
 
-    private ClassLoader(Void unused, ClassLoader parent) {
+    private ClassLoader(Void unused, ClassLoader parent) { // void类型的形参写法第一次见 以后自己code的时候也可以这样重写方法 将校验工作放在一个方法中返回为void
         this.parent = parent;
-        if (ParallelLoaders.isRegistered(this.getClass())) {
+        if (ParallelLoaders.isRegistered(this.getClass())) { // 判断当前的类加载器是否具备并行能力
             parallelLockMap = new ConcurrentHashMap<>();
             package2certs = new ConcurrentHashMap<>();
             assertionLock = new Object();
@@ -395,15 +395,15 @@ public abstract class ClassLoader {
     protected Class<?> loadClass(String name, boolean resolve)
         throws ClassNotFoundException
     {
-        synchronized (getClassLoadingLock(name)) {
+        synchronized (getClassLoadingLock(name)) { // 保证线程安全 全程加锁操作 这个锁的对象取决于类加载器是否具备并行能力
             // First, check if the class has already been loaded
-            Class<?> c = findLoadedClass(name);
-            if (c == null) {
+            Class<?> c = findLoadedClass(name); // 先查看一下这个类是否被加载过 如果之前被加载过 直接返回该对象 不需要二次加载 如果之前没被加载过 返回的是null 进行下一步骤
+            if (c == null) { // 这个类之前没有被加载过
                 long t0 = System.nanoTime();
-                try {
-                    if (parent != null) {
+                try { // 下面这一段代码可以看出 类加载器的双亲委派 父类加载器不是通过继承方式实现 而是通过组合的方式
+                    if (parent != null) { // 如果父加载器不为空 就交给父加载器去执行加载
                         c = parent.loadClass(name, false);
-                    } else {
+                    } else { // 如果父加载器为空 则调用虚拟机的加载器Bootstrap ClassLoader来加载类
                         c = findBootstrapClassOrNull(name);
                     }
                 } catch (ClassNotFoundException e) {
@@ -411,7 +411,7 @@ public abstract class ClassLoader {
                     // from the non-null parent class loader
                 }
 
-                if (c == null) {
+                if (c == null) { // 如果都没加载到类 那么就调用自己的findClass()方法进行加载
                     // If still not found, then invoke findClass in order
                     // to find the class.
                     long t1 = System.nanoTime();
@@ -450,7 +450,7 @@ public abstract class ClassLoader {
      *
      * @since  1.7
      */
-    protected Object getClassLoadingLock(String className) {
+    protected Object getClassLoadingLock(String className) { // 如果当前类加载器具备并行能力 就new一个加锁对象出来 如果不具备并行能力就不需要new加锁对象 直接返回当前对象
         Object lock = this;
         if (parallelLockMap != null) {
             Object newLock = new Object();
