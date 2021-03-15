@@ -259,7 +259,7 @@ public final class Class<T> implements java.io.Serializable,
      */
     @CallerSensitive
     public static Class<?> forName(String className)
-                throws ClassNotFoundException {
+                throws ClassNotFoundException { // 返回指定类名className的Class对象
         Class<?> caller = Reflection.getCallerClass();
         return forName0(className, true, ClassLoader.getClassLoader(caller), caller);
     }
@@ -392,7 +392,7 @@ public final class Class<T> implements java.io.Serializable,
     @CallerSensitive
     public T newInstance()
         throws InstantiationException, IllegalAccessException
-    {
+    { // 缺省的构造方法 返回Class的对象实例
         if (System.getSecurityManager() != null) {
             checkMemberAccess(Member.PUBLIC, Reflection.getCallerClass(), false);
         }
@@ -636,7 +636,7 @@ public final class Class<T> implements java.io.Serializable,
      * @return  the name of the class or interface
      *          represented by this object.
      */
-    public String getName() {
+    public String getName() { // 返回Class对象的名称
         String name = this.name;
         if (name == null)
             this.name = name = getName0();
@@ -674,7 +674,7 @@ public final class Class<T> implements java.io.Serializable,
      * @see java.lang.RuntimePermission
      */
     @CallerSensitive
-    public ClassLoader getClassLoader() {
+    public ClassLoader getClassLoader() { // 获取Class对象的类加载器
         ClassLoader cl = getClassLoader0();
         if (cl == null)
             return null;
@@ -729,7 +729,7 @@ public final class Class<T> implements java.io.Serializable,
      *
      * @return the superclass of the class represented by this object.
      */
-    public native Class<? super T> getSuperclass();
+    public native Class<? super T> getSuperclass(); // 获取Class对象的父类对象
 
 
     /**
