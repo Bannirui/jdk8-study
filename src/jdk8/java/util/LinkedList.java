@@ -46,7 +46,7 @@ import java.util.function.Consumer;
  * encapsulates the list.
  *
  * If no such object exists, the list should be "wrapped" using the
- * {@link Collections#synchronizedList Collections.synchronizedList}
+ * {@link Collections#synchronizedList Collections.synchronizedList} // 线程安全场景使用Collections.synchronizedList方式
  * method.  This is best done at creation time, to prevent accidental
  * unsynchronized access to the list:<pre>
  *   List list = Collections.synchronizedList(new LinkedList(...));</pre>
@@ -91,14 +91,14 @@ public class LinkedList<E>
      * Invariant: (first == null && last == null) ||
      *            (first.prev == null && first.item != null)
      */
-    transient Node<E> first; // 链表首节点
+    transient Node<E> first; // 链表首节点 transient修饰 无法序列化 LinkedList又实现了Serializable 只能手动实现序列化与反序列化
 
     /**
      * Pointer to last node.
      * Invariant: (first == null && last == null) ||
      *            (last.next == null && last.item != null)
      */
-    transient Node<E> last; // 链表尾节点
+    transient Node<E> last; // 链表尾节点 transient修饰 无法序列化 LikedList又实现了Serializble 只能手动实现序列化和反序列化
 
     /**
      * Constructs an empty list.
@@ -621,7 +621,7 @@ public class LinkedList<E>
      * @return the index of the last occurrence of the specified element in
      *         this list, or -1 if this list does not contain the element
      */
-    public int lastIndexOf(Object o) {
+    public int lastIndexOf(Object o) { // 找到指定元素的最后一个位置索引 双向链表的好处 只要拿到一个节点 向前向后遍历都不是难事
         int index = size;
         if (o == null) {
             for (Node<E> x = last; x != null; x = x.prev) {
@@ -967,7 +967,7 @@ public class LinkedList<E>
         }
     }
 
-    private static class Node<E> {
+    private static class Node<E> { // 双链表节点 维护了prev和next指针域
         E item;
         Node<E> next;
         Node<E> prev;
@@ -1119,7 +1119,7 @@ public class LinkedList<E>
      *             elements (each an Object) in the proper order.
      */
     private void writeObject(java.io.ObjectOutputStream s)
-        throws java.io.IOException {
+        throws java.io.IOException { // 手动实现序列化
         // Write out any hidden serialization magic
         s.defaultWriteObject();
 
@@ -1137,7 +1137,7 @@ public class LinkedList<E>
      */
     @SuppressWarnings("unchecked")
     private void readObject(java.io.ObjectInputStream s)
-        throws java.io.IOException, ClassNotFoundException {
+        throws java.io.IOException, ClassNotFoundException { // 手动实现反序列化
         // Read in any hidden serialization magic
         s.defaultReadObject();
 
