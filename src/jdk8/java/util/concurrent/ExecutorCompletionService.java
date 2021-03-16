@@ -106,7 +106,7 @@ package java.util.concurrent;
  */
 public class ExecutorCompletionService<V> implements CompletionService<V> {
     private final Executor executor;
-    private final AbstractExecutorService aes;
+    private final AbstractExecutorService aes; // 组合了AbstractExecutorService 装饰了aes 让aes持有了对结果队列的操作能力
     private final BlockingQueue<Future<V>> completionQueue;
 
     /**
