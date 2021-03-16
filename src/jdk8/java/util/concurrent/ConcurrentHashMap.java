@@ -1048,7 +1048,7 @@ public class ConcurrentHashMap<K,V> extends AbstractMap<K,V>
                         }
                         else if (f instanceof TreeBin) { // 桶里面的元素是树形结构
                             Node<K,V> p;
-                            binCount = 2; // todo 为啥这里要赋值桶中节点数是2 卧槽 这个设计就很秀
+                            binCount = 2; // 为啥这里要赋值桶中节点数是2 卧槽 这个设计就很秀
                             if ((p = ((TreeBin<K,V>)f).putTreeVal(hash, key,
                                                            value)) != null) { // 调用红黑树的插入方法插入当前元素 如果红黑树中没有相同的key的节点 就将节点插入树中 返回的是null 如果有相同的key值 就返回那个节点
                                 oldVal = p.val;

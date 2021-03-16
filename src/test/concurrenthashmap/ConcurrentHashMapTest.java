@@ -34,10 +34,27 @@ public class ConcurrentHashMapTest {
         ConcurrentHashMap<String, Integer> map = new ConcurrentHashMap<>(3);
     }
 
+    /**
+     * @author dingrui
+     * @date 2021/3/16
+     * @return
+     * @description jdk8中concurrentHashMap的bug
+     *
+     */
     @Test
     public void test3() {
         ConcurrentHashMap<String, Integer> map = new ConcurrentHashMap<>();
-        map.computeIfAbsent("dingrui", (key) -> map.put("dingrui", 11));
+        String key = "dingrui";
+        map.computeIfAbsent(key, (k) -> map.put(k, 11));
+    }
+
+    @Test
+    public void test5() {
+        ConcurrentHashMap<String, Integer> chm = new ConcurrentHashMap<>();
+        String key = "dingrui";
+        Integer value = chm.put(key, 12);
+        chm.computeIfAbsent(key, (k) -> 11);
+        System.out.println();
     }
 
     /**
@@ -49,9 +66,9 @@ public class ConcurrentHashMapTest {
     @Test
     public void test4() {
         HashMap<String, Integer> hm = new HashMap<>();
-        hm.put("ding1",1);
-        hm.put("ding2",2);
-        hm.put("ding3",3);
+        hm.put("ding1", 1);
+        hm.put("ding2", 2);
+        hm.put("ding3", 3);
 
         ConcurrentHashMap<String, Integer> chm = new ConcurrentHashMap<>();
         chm.putAll(hm);
