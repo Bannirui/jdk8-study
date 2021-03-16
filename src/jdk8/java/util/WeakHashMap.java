@@ -316,7 +316,7 @@ public class WeakHashMap<K,V>
      */
     private void expungeStaleEntries() { // 当key失效的时候gc会自动把Entry添加到这个队列中 既然queue队列中保存的都是要清除的Entry 就遍历队列 把Entry从map中移除
         for (Object x; (x = queue.poll()) != null; ) { // 遍历队列
-            synchronized (queue) { // todo 这个地方为啥要加锁
+            synchronized (queue) { // queue里面存放的是失效的key
                 @SuppressWarnings("unchecked")
                     Entry<K,V> e = (Entry<K,V>) x;
                 int i = indexFor(e.hash, table.length); // 桶数组对应的脚标
