@@ -29,7 +29,7 @@ package java.util;
  * <p>Hash table and linked list implementation of the <tt>Set</tt> interface,
  * with predictable iteration order.  This implementation differs from
  * <tt>HashSet</tt> in that it maintains a doubly-linked list running through
- * all of its entries.  This linked list defines the iteration ordering,
+ * all of its entries.  This linked list defines the iteration ordering, // 通过维护双向链表实现了有序性 也是用空间置换
  * which is the order in which elements were inserted into the set
  * (<i>insertion-order</i>).  Note that insertion order is <i>not</i> affected
  * if an element is <i>re-inserted</i> into the set.  (An element <tt>e</tt>
@@ -117,7 +117,7 @@ package java.util;
 
 public class LinkedHashSet<E>
     extends HashSet<E>
-    implements Set<E>, Cloneable, java.io.Serializable { // 这个类的涉及真的是秀 充分显示了什么叫优雅的代码 首先接口方法都是通过继承HashSet实现 但是HashSet是通过继承HashMap实现的 不能保证有序性 为了实现有序性 必须继承LinkedHashMap 所以在HashSet中留了一个默认边界修饰符的构造方法 使用的就是new一个LinkedHashMap 只能同包或者子类去调用 在这里派上用途了 其次调用的构造方法中指定了accessorOrder=false 也就是说LinkedHashSet的元素顺序是插入顺序
+    implements Set<E>, Cloneable, java.io.Serializable { // 这个类的设计真的是秀 充分显示了什么叫优雅的代码 首先接口方法都是通过继承HashSet实现 但是HashSet是通过继承HashMap实现的 不能保证有序性 为了实现有序性 必须继承LinkedHashMap 所以在HashSet中留了一个默认边界修饰符的构造方法 使用的就是new一个LinkedHashMap 只能同包或者子类去调用 在这里派上用途了 其次调用的构造方法中指定了accessorOrder=false 也就是说LinkedHashSet的元素顺序是插入顺序
 
     private static final long serialVersionUID = -2851667679971038690L;
 
