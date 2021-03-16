@@ -34,7 +34,7 @@ package java.lang;
  * @since   JDK1.1
  */
 public final
-class Void {
+class Void { // final修饰不可继承
 
     /**
      * The {@code Class} object representing the pseudo-type corresponding to
