@@ -38,9 +38,9 @@ import sun.misc.SharedSecrets;
 
 /**
  * Hash table based implementation of the <tt>Map</tt> interface.  This
- * implementation provides all of the optional map operations, and permits todo 这个地方可能要留意 对比ConcurrentHashMap不允许null类型key value
+ * implementation provides all of the optional map operations, and permits // 这个地方可能要留意 对比ConcurrentHashMap不允许null类型key value
  * <tt>null</tt> values and the <tt>null</tt> key.  (The <tt>HashMap</tt>
- * class is roughly equivalent to <tt>Hashtable</tt>, except that it is todo HashTable vs HashMap
+ * class is roughly equivalent to <tt>Hashtable</tt>, except that it is // HashTable vs HashMap
  * unsynchronized and permits nulls.)  This class makes no guarantees as to
  * the order of the map; in particular, it does not guarantee that the order
  * will remain constant over time.
@@ -50,12 +50,12 @@ import sun.misc.SharedSecrets;
  * disperses the elements properly among the buckets.  Iteration over
  * collection views requires time proportional to the "capacity" of the
  * <tt>HashMap</tt> instance (the number of buckets) plus its size (the number
- * of key-value mappings).  Thus, it's very important not to set the initial todo 迭代的时间复杂度根数组长度成正比 不要初始化过大容量或者过小loadFactor
+ * of key-value mappings).  Thus, it's very important not to set the initial // 迭代的时间复杂度根数组长度成正比 不要初始化过大容量或者过小loadFactor
  * capacity too high (or the load factor too low) if iteration performance is
  * important.
  *
  * <p>An instance of <tt>HashMap</tt> has two parameters that affect its
- * performance: <i>initial capacity</i> and <i>load factor</i>.  The
+ * performance: <i>initial capacity</i> and <i>load factor</i>.  The // 两个重要的属性: initial capacity和load factor
  * <i>capacity</i> is the number of buckets in the hash table, and the initial
  * capacity is simply the capacity at the time the hash table is created.  The
  * <i>load factor</i> is a measure of how full the hash table is allowed to
@@ -65,7 +65,7 @@ import sun.misc.SharedSecrets;
  * structures are rebuilt) so that the hash table has approximately twice the
  * number of buckets.
  *
- * <p>As a general rule, the default load factor (.75) offers a good todo loadFactor取值0.75 经验值 在get、put的时间和空间复杂度上平衡 过大 意味着entry数组比较满 整体比较节省空间开销 但是每个enty桶里面元素很多 可能链表比较长或者树高比较高 get和put的时间消耗会增加 反之 如果过小 意味着经常扩容 空间消耗大 但是get、put快
+ * <p>As a general rule, the default load factor (.75) offers a good // loadFactor取值0.75 经验值 在get、put的时间和空间复杂度上平衡 过大 意味着entry数组比较满 整体比较节省空间开销 但是每个enty桶里面元素很多 可能链表比较长或者树高比较高 get和put的时间消耗会增加 反之 如果过小 意味着经常扩容 空间消耗大 但是get、put快
  * tradeoff between time and space costs.  Higher values decrease the
  * space overhead but increase the lookup cost (reflected in most of
  * the operations of the <tt>HashMap</tt> class, including
@@ -77,7 +77,7 @@ import sun.misc.SharedSecrets;
  * operations will ever occur.
  *
  * <p>If many mappings are to be stored in a <tt>HashMap</tt>
- * instance, creating it with a sufficiently large capacity will allow todo 实际开发中如果可预期存储容量 构造方法中指定避免多次rehash损耗性能
+ * instance, creating it with a sufficiently large capacity will allow // 实际开发中如果可预期存储容量 构造方法中指定避免多次rehash损耗性能
  * the mappings to be stored more efficiently than letting it perform
  * automatic rehashing as needed to grow the table.  Note that using
  * many keys with the same {@code hashCode()} is a sure way to slow
@@ -85,7 +85,7 @@ import sun.misc.SharedSecrets;
  * are {@link Comparable}, this class may use comparison order among
  * keys to help break ties.
  *
- * <p><strong>Note that this implementation is not synchronized.</strong> todo 非线程安全容器 但是不代表线程不安全 比如多线程场景下只发生get 永远不可能出现数据污染
+ * <p><strong>Note that this implementation is not synchronized.</strong> // 非线程安全容器 但是不代表线程不安全 比如多线程场景下只发生get 永远不可能出现数据污染
  * If multiple threads access a hash map concurrently, and at least one of
  * the threads modifies the map structurally, it <i>must</i> be
  * synchronized externally.  (A structural modification is any operation
@@ -98,7 +98,7 @@ import sun.misc.SharedSecrets;
  * {@link Collections#synchronizedMap Collections.synchronizedMap}
  * method.  This is best done at creation time, to prevent accidental
  * unsynchronized access to the map:<pre>
- *   Map m = Collections.synchronizedMap(new HashMap(...));</pre> todo 面试的时候如果问在多线程场景下如何使用
+ *   Map m = Collections.synchronizedMap(new HashMap(...));</pre> // 面试的时候如果问在多线程场景下如何使用
  *
  * <p>The iterators returned by all of this class's "collection view methods"
  * are <i>fail-fast</i>: if the map is structurally modified at any time after
@@ -172,7 +172,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * programming practices that are already so slow that this makes
      * little difference.)
      *
-     * Because TreeNodes are about twice the size of regular nodes, we todo 因为树形节点上要维护left和right域 空间上是单链表的两倍 链表<==>红黑树 之间的转换是有条件的 尽量平衡在空间和时间
+     * Because TreeNodes are about twice the size of regular nodes, we // 因为树形节点上要维护left和right域 空间上是单链表的两倍 链表<==>红黑树 之间的转换是有条件的 尽量平衡在空间和时间
      * use them only when bins contain enough nodes to warrant use
      * (see TREEIFY_THRESHOLD). And when they become too small (due to
      * removal or resizing) they are converted back to plain bins.  In
@@ -195,7 +195,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * 6:    0.00001316
      * 7:    0.00000094
      * 8:    0.00000006
-     * more: less than 1 in ten million
+     * more: less than 1 in ten million // 为什么链表树化的条件之一是节点数>8的原因 因为>8的hash碰撞概率已经很低了 8的碰撞概率就是极其明显的分水岭
      *
      * The root of a tree bin is normally its first node.  However,
      * sometimes (currently only upon Iterator.remove), the root might
@@ -276,11 +276,11 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * Basic hash bin node, used for most entries.  (See below for
      * TreeNode subclass, and in LinkedHashMap for its Entry subclass.)
      */
-    static class Node<K,V> implements Map.Entry<K,V> {
-        final int hash;
-        final K key;
-        V value;
-        Node<K,V> next;
+    static class Node<K,V> implements Map.Entry<K,V> { // HashMap中的数据节点
+        final int hash; // hash值 维护属性专门记录hashCode hashCode是由key计算出来的 但是因为在hashMap中使用hash值的场景极其多 每次都现场计算的话 性能开销 所以单独存储 用空间换时间
+        final K key; // key值
+        V value; // value值
+        Node<K,V> next; // next指针域
 
         Node(int hash, K key, V value, Node<K,V> next) {
             this.hash = hash;
@@ -334,7 +334,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * to incorporate impact of the highest bits that would otherwise
      * never be used in index calculations because of table bounds.
      */
-    static final int hash(Object key) {
+    static final int hash(Object key) { // 扰动方法 hashCode应用场景是h&(length-1)求数组脚标 32位的hashCode的高16位很少用到 因此在计算之初就将高16拉进来 增加hashCode结算结果的丰富性 减少hash碰撞
         int h;
         return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16); // 为什么不直接用hashCode 而是要再取异或 根据使用场景推导：首先hash函数的用到的地方是根据key的hash值求出entry数组脚标 因为保证了数组长度是2的幂次方 因此index=hash&(n-1) 两个二进制与的结果取决于各个位上是0还是1 这个n的范围是[0,2^30] 假设n从低位到高位 1=0 10=2 100=4 1000=8 1,0000=16 10,0000=32 100,0000=64 ... 2^15=32768 也就是说如果n的低16位是1的化map容量就是32k 在我个人使用的场景下 基本很难有真实场景需要用这么大的map 换言之就是n的第低m位是1(真实场景下m<16比较多) n-1之后就是低m-1位都是1 这时候hash&(n-1) 起到决定性作用的就是这低m-1位 hash中有32位 真正决定脚标参与计算的只有m-1位 map容量越小 m越小 index越可能一样 发生hash碰撞的机率越大 现在如果要减少发生hash碰撞的概率 而且在不增加容量的前提下 只要改变hash值就行 让hash值具有丰富性 增加hash值低m-1位的丰富性 这就是这个方法的根本：hash本身32位 右移16位后用高16位异或上自己 使得hash值变得丰富->减少hash碰撞
     }
@@ -388,7 +388,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     /* ---------------- Fields -------------- */
 
     /**
-     * The table, initialized on first use, and resized as todo HashMap自身是实现了Serializable接口可序列化的 但是table阈是transient修饰不能序列化的 为啥这样设计：1，对map的操作最终都是通过调用Object.hashCode来定位entry数组脚标i来定位table[i]进行get、put操作 Object.hashCode这个方法是native方法 不同的jvm可能不一样 2，这个数组是通过loadFactor控制扩容阀值的 就意味着数组里面总会有一部分空间是没有利用 属于闲置的 序列化空数组没有意义
+     * The table, initialized on first use, and resized as // HashMap自身是实现了Serializable接口可序列化的 但是table阈是transient修饰不能序列化的 为啥这样设计：1，对map的操作最终都是通过调用Object.hashCode来定位entry数组脚标i来定位table[i]进行get、put操作 Object.hashCode这个方法是native方法 不同的jvm可能不一样 2，这个数组是通过loadFactor控制扩容阀值的 就意味着数组里面总会有一部分空间是没有利用 属于闲置的 序列化空数组没有意义
      * necessary. When allocated, length is always a power of two.
      * (We also tolerate length zero in some operations to allow
      * bootstrapping mechanics that are currently not needed.)
@@ -404,7 +404,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     /**
      * The number of key-value mappings contained in this map.
      */
-    transient int size; // 占用桶位个数 哈希桶数组中有多少桶已经被占用
+    transient int size; // 占用桶位个数 哈希桶数组中有多少桶已经被占用 数组容量>size 因为负责因子的存在 导致数组一定会有闲置空间
 
     /**
      * The number of times this HashMap has been structurally modified
@@ -688,7 +688,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                      oldCap >= DEFAULT_INITIAL_CAPACITY) // 扩容操作 对新数组的容量和新阈值进行*2 默认初始化大小16 以及扩容是乘以2 保证了容量是2的幂次方 保证了位运算取模的前提条件 todo 只要保证用户构造方法传入奇数的情况就彻底保证了容量是2的幂次方
                 newThr = oldThr << 1; // double threshold
         }
-        else if (oldThr > 0) // initial capacity was placed in threshold todo 什么时候会进这个分支呢
+        else if (oldThr > 0) // initial capacity was placed in threshold
             newCap = oldThr;
         else {               // zero initial threshold signifies using defaults 空map第一次调用put之后触发扩容 相当于给map容量初始化
             newCap = DEFAULT_INITIAL_CAPACITY; // map默认大小16 是2的4次方
@@ -1354,7 +1354,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      *             emitted in no particular order.
      */
     private void writeObject(java.io.ObjectOutputStream s)
-        throws IOException {
+        throws IOException { // entry数组被transient修饰 无法进行序列化和反序列化 但是HashMap实现了Serializable 因此手动实现序列化
         int buckets = capacity();
         // Write out the threshold, loadfactor, and any hidden stuff
         s.defaultWriteObject();
@@ -1371,7 +1371,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * @throws IOException if an I/O error occurs
      */
     private void readObject(java.io.ObjectInputStream s)
-        throws IOException, ClassNotFoundException {
+        throws IOException, ClassNotFoundException { // entry数组被transient修饰 无法进行序列化和凡序列化 但是HashMap实现了Serializable 因此手动实现反序列化
         // Read in the threshold (ignored), loadfactor, and any hidden stuff
         s.defaultReadObject(); // 这边读取非static 非transient修饰的属性
         reinitialize();
