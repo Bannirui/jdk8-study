@@ -350,7 +350,7 @@ public final class System {
      *          the current time and midnight, January 1, 1970 UTC.
      * @see     java.util.Date
      */
-    public static native long currentTimeMillis();
+    public static native long currentTimeMillis(); // native修饰的本地方法
 
     /**
      * Returns the current value of the running Java Virtual Machine's
@@ -492,7 +492,7 @@ public final class System {
      */
     public static native void arraycopy(Object src,  int  srcPos,
                                         Object dest, int destPos,
-                                        int length);
+                                        int length); // native修饰的本地方法 这个数组拷贝的方法在其他源码中被大量应用 在刷力扣的时候也经常使用到
 
     /**
      * Returns the same hash code for the given object as
