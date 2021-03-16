@@ -32,7 +32,7 @@ import sun.misc.SharedSecrets;
  * This class implements the <tt>Set</tt> interface, backed by a hash table
  * (actually a <tt>HashMap</tt> instance).  It makes no guarantees as to the
  * iteration order of the set; in particular, it does not guarantee that the
- * order will remain constant over time.  This class permits the <tt>null</tt>
+ * order will remain constant over time.  This class permits the <tt>null</tt> // Hashset允许null值
  * element.
  *
  * <p>This class offers constant time performance for the basic operations
@@ -51,7 +51,7 @@ import sun.misc.SharedSecrets;
  * naturally encapsulates the set.
  *
  * If no such object exists, the set should be "wrapped" using the
- * {@link Collections#synchronizedSet Collections.synchronizedSet}
+ * {@link Collections#synchronizedSet Collections.synchronizedSet} // HashSet不是线程安全容器 线程安全场景的使用方式是使用Collections.synchronizedSet
  * method.  This is best done at creation time, to prevent accidental
  * unsynchronized access to the set:<pre>
  *   Set s = Collections.synchronizedSet(new HashSet(...));</pre>
@@ -64,7 +64,7 @@ import sun.misc.SharedSecrets;
  * and cleanly, rather than risking arbitrary, non-deterministic behavior at
  * an undetermined time in the future.
  *
- * <p>Note that the fail-fast behavior of an iterator cannot be guaranteed
+ * <p>Note that the fail-fast behavior of an iterator cannot be guaranteed // 同样是通过维护modCount属性实现fast-fail机制
  * as it is, generally speaking, impossible to make any hard guarantees in the
  * presence of unsynchronized concurrent modification.  Fail-fast iterators
  * throw <tt>ConcurrentModificationException</tt> on a best-effort basis.
@@ -93,7 +93,7 @@ public class HashSet<E>
 {
     static final long serialVersionUID = -5024744406713321676L;
 
-    private transient HashMap<E,Object> map; // map属性 HashSet的元素唯一性是通过HashMap保证的
+    private transient HashMap<E,Object> map; // map属性 HashSet的元素唯一性是通过HashMap保证的 HashSet组合了HashMap
 
     // Dummy value to associate with an Object in the backing Map
     private static final Object PRESENT = new Object(); // 虚拟对象 用来作为value放到HashMap中去
@@ -102,7 +102,7 @@ public class HashSet<E>
      * Constructs a new, empty set; the backing <tt>HashMap</tt> instance has
      * default initial capacity (16) and load factor (0.75).
      */
-    public HashSet() {
+    public HashSet() { // HashSet的无参构造方法 内部就是new一个HashMap赋值给map属性
         map = new HashMap<>();
     }
 
@@ -216,7 +216,7 @@ public class HashSet<E>
      * @return <tt>true</tt> if this set did not already contain the specified
      * element
      */
-    public boolean add(E e) {
+    public boolean add(E e) { // 如果向HashSet中添加的元素是一样的 那么对应到HashMap中put的方法必定发生hash碰撞 再进一步判断发现key一样 就会进行新值替换老值 通过key的唯一性保证了HashSet中的元素不重复 HashMap中允许一个key值为null 那么HashSet中也允许出现一个null元素
         return map.put(e, PRESENT)==null; // 调用HashMap的put方法 key是元素本身 value是PRESENT=new Object() 也就是说HashMap中所有mapping的value都一样
     }
 

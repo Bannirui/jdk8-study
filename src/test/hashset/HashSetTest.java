@@ -21,4 +21,19 @@ public class HashSetTest {
     public void test1() {
         HashSet<String> set = new HashSet<>();
     }
+
+    @Test
+    public void test2() {
+        HashSet<Integer> set = new HashSet<>();
+        set.add(1);
+        set.add(1);
+        System.out.println();
+    }
+
+    @Test
+    public void test3() {
+        HashSet<Integer> set = new HashSet<>();
+        set.add(null);
+        System.out.println();
+    }
 }
