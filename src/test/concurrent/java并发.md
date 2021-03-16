@@ -97,3 +97,4 @@
 > 线程通讯
 * 传统上，使用synchronized关键字+wait+notify/notifyAll来实现多个线程之间的协调和通信，整个过程都是由jvm来帮助实现的，开发者无需了解底层实现细节
 * jdk1.5开始，并发包提供了Lock+Condition(await+signal/signalAll)来实现多个线程之间的协调和通信，整个过程都是由开发者来控制的，而且相比于传统方式，更加灵活，功能也更加强大
+* Thread.sleep与await（或者object的wait方法）的本质区别：sleep方法本质不会释放锁，而await会释放锁，并且在signal之后，还需要重新获取锁才能继续执行(该行为与Object的wait方法完全一致)
