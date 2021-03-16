@@ -28,7 +28,7 @@ import java.util.Map.Entry;
 
 /**
  * This class provides a skeletal implementation of the <tt>Map</tt>
- * interface, to minimize the effort required to implement this interface.
+ * interface, to minimize the effort required to implement this interface. // AbstractMap实现了Map这个接口定义的方法骨架 尽量减少为了实现Map接口要做的工作
  *
  * <p>To implement an unmodifiable map, the programmer needs only to extend this
  * class and provide an implementation for the <tt>entrySet</tt> method, which
@@ -67,10 +67,10 @@ import java.util.Map.Entry;
 
 public abstract class AbstractMap<K,V> implements Map<K,V> {
     /**
-     * Sole constructor.  (For invocation by subclass constructors, typically
+     * SOLE constructor.  (For invocation by subclass constructors, typically
      * implicit.)
      */
-    protected AbstractMap() {
+    protected AbstractMap() { // 提供唯一的一个无参构造方法 子类隐式调用
     }
 
     // Query Operations
@@ -81,7 +81,7 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
      * @implSpec
      * This implementation returns <tt>entrySet().size()</tt>.
      */
-    public int size() {
+    public int size() { // 返回条目的数量
         return entrySet().size();
     }
 
@@ -108,7 +108,7 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
      * @throws ClassCastException   {@inheritDoc}
      * @throws NullPointerException {@inheritDoc}
      */
-    public boolean containsValue(Object value) {
+    public boolean containsValue(Object value) { // 是否包含某个value 判断value是否为null
         Iterator<Entry<K,V>> i = entrySet().iterator();
         if (value==null) {
             while (i.hasNext()) {
@@ -172,7 +172,7 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
      * @throws ClassCastException            {@inheritDoc}
      * @throws NullPointerException          {@inheritDoc}
      */
-    public V get(Object key) {
+    public V get(Object key) { // 根据key获取对应的value
         Iterator<Entry<K,V>> i = entrySet().iterator();
         if (key==null) {
             while (i.hasNext()) {
@@ -205,7 +205,7 @@ public abstract class AbstractMap<K,V> implements Map<K,V> {
      * @throws NullPointerException          {@inheritDoc}
      * @throws IllegalArgumentException      {@inheritDoc}
      */
-    public V put(K key, V value) {
+    public V put(K key, V value) { // 抽象类不支持put 得由子类去重写 抽象类中没有维护底层的数据存储结构
         throw new UnsupportedOperationException();
     }
 
