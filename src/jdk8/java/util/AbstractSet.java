@@ -60,7 +60,7 @@ public abstract class AbstractSet<E> extends AbstractCollection<E> implements Se
      * Sole constructor.  (For invocation by subclass constructors, typically
      * implicit.)
      */
-    protected AbstractSet() {
+    protected AbstractSet() { // 提供了唯一的无参构造方法 供子类隐式调用
     }
 
     // Comparison and hashing
