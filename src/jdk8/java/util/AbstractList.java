@@ -26,7 +26,7 @@
 package java.util;
 
 /**
- * This class provides a skeletal implementation of the {@link List}
+ * This class provides a skeletal implementation of the {@link List} // AbstractList给List提供了基础算法框架 设计模式中的模板方法
  * interface to minimize the effort required to implement this interface
  * backed by a "random access" data store (such as an array).  For sequential
  * access data (such as a linked list), {@link AbstractSequentialList} should
@@ -73,7 +73,7 @@ public abstract class AbstractList<E> extends AbstractCollection<E> implements L
      * Sole constructor.  (For invocation by subclass constructors, typically
      * implicit.)
      */
-    protected AbstractList() {
+    protected AbstractList() { // 空参构造方法 protected边界修饰 只有子类才能访问
     }
 
     /**
@@ -104,8 +104,8 @@ public abstract class AbstractList<E> extends AbstractCollection<E> implements L
      * @throws IllegalArgumentException if some property of this element
      *         prevents it from being added to this list
      */
-    public boolean add(E e) {
-        add(size(), e);
+    public boolean add(E e) { // 将元素追加到列表末尾
+        add(size(), e); // size()方法是父类AbstractCollection提供的抽象方法 供子类去关注实现
         return true;
     }
 
@@ -114,7 +114,7 @@ public abstract class AbstractList<E> extends AbstractCollection<E> implements L
      *
      * @throws IndexOutOfBoundsException {@inheritDoc}
      */
-    abstract public E get(int index);
+    abstract public E get(int index); // 根据脚标索引获取对应元素 子类去关注实现
 
     /**
      * {@inheritDoc}
@@ -128,7 +128,7 @@ public abstract class AbstractList<E> extends AbstractCollection<E> implements L
      * @throws IllegalArgumentException      {@inheritDoc}
      * @throws IndexOutOfBoundsException     {@inheritDoc}
      */
-    public E set(int index, E element) {
+    public E set(int index, E element) { // 这样的代码设计方式可以借鉴 抽象类中使用抽象方法 那么子类必须要全部去实现 但是不用abstract修饰让子类选择性去决定是否重写
         throw new UnsupportedOperationException();
     }
 
@@ -144,7 +144,7 @@ public abstract class AbstractList<E> extends AbstractCollection<E> implements L
      * @throws IllegalArgumentException      {@inheritDoc}
      * @throws IndexOutOfBoundsException     {@inheritDoc}
      */
-    public void add(int index, E element) {
+    public void add(int index, E element) { // 该方法体中只抛出一个异常(不支持元素追加) 如果子类想实现 就对这个方法进行选择性的重写
         throw new UnsupportedOperationException();
     }
 
@@ -331,77 +331,77 @@ public abstract class AbstractList<E> extends AbstractCollection<E> implements L
         /**
          * Index of element to be returned by subsequent call to next.
          */
-        int cursor = 0;
+        int cursor = 0; // 下一个调用next访问元素的下标
 
         /**
          * Index of element returned by most recent call to next or
          * previous.  Reset to -1 if this element is deleted by a call
          * to remove.
          */
-        int lastRet = -1;
+        int lastRet = -1; // 上一个访问元素的下标
 
         /**
          * The modCount value that the iterator believes that the backing
          * List should have.  If this expectation is violated, the iterator
          * has detected concurrent modification.
          */
-        int expectedModCount = modCount;
+        int expectedModCount = modCount; // 期望修改次数
 
-        public boolean hasNext() {
-            return cursor != size();
+        public boolean hasNext() { // 判断数组是否包含下一个元素
+            return cursor != size(); // 下一个要访问元素的下标等于了数组长度说明就访问到数组最后了 没有下一个元素了
         }
 
-        public E next() {
-            checkForComodification();
+        public E next() { // 获得下一个元素
+            checkForComodification(); // fast-fail检查
             try {
-                int i = cursor;
-                E next = get(i);
-                lastRet = i;
-                cursor = i + 1;
+                int i = cursor; // cursor记录的是下一个要访问元素的下标
+                E next = get(i); // 获取这个下标对应的值
+                lastRet = i; // 重置最后一次访问元素的下标
+                cursor = i + 1; // 更新下一个要访问元素的下标的值
                 return next;
             } catch (IndexOutOfBoundsException e) {
-                checkForComodification();
+                checkForComodification(); // 抛出异常后 检查一下fast-fail 这个方法中也有一个throw关键字 如果异常是因为modCount导致的 抛出到客户端的就是fast-fail
                 throw new NoSuchElementException();
             }
         }
 
-        public void remove() {
-            if (lastRet < 0)
+        public void remove() { // 删除当前元素
+            if (lastRet < 0) // 最后一次访问的元素的下标
                 throw new IllegalStateException();
-            checkForComodification();
+            checkForComodification(); // 判断是否修改 执行fast-fail策略
 
             try {
-                AbstractList.this.remove(lastRet);
+                AbstractList.this.remove(lastRet); // 根据下标删除元素
                 if (lastRet < cursor)
-                    cursor--;
-                lastRet = -1;
+                    cursor--; // 下一次要访问的元素下标减去1
+                lastRet = -1; // 最后一次访问元素下标重置为-1
                 expectedModCount = modCount;
             } catch (IndexOutOfBoundsException e) {
                 throw new ConcurrentModificationException();
             }
         }
 
-        final void checkForComodification() {
+        final void checkForComodification() { // 判断元素是否被修改 数组被迭代期间 如果数据被修改了 modCount就会增加 一旦开始开始迭代时记录的这个modCount出现了变化 fast-fail
             if (modCount != expectedModCount)
                 throw new ConcurrentModificationException();
         }
     }
 
     private class ListItr extends Itr implements ListIterator<E> {
-        ListItr(int index) {
+        ListItr(int index) { // 只有这一个构造方法 从index开始迭代
             cursor = index;
         }
 
-        public boolean hasPrevious() {
+        public boolean hasPrevious() { // cursor前面是否还有元素 如果下一个要访问的元素的下标cursor等于0 说明指向的就是数组中第一个元素 前面没有元素了
             return cursor != 0;
         }
 
-        public E previous() {
-            checkForComodification();
+        public E previous() { // 获取前一个元素
+            checkForComodification(); // fast-fail检测是否被修改
             try {
-                int i = cursor - 1;
-                E previous = get(i);
-                lastRet = cursor = i;
+                int i = cursor - 1; // 下标前移一个 找到前一个元素的下标
+                E previous = get(i); // 获取前一个元素
+                lastRet = cursor = i; // 更新最后一个访问的元素的下标 就是获取的这个元素的下标
                 return previous;
             } catch (IndexOutOfBoundsException e) {
                 checkForComodification();
@@ -409,36 +409,36 @@ public abstract class AbstractList<E> extends AbstractCollection<E> implements L
             }
         }
 
-        public int nextIndex() {
+        public int nextIndex() { // 获取当前下标
             return cursor;
         }
 
-        public int previousIndex() {
+        public int previousIndex() { // 获取前一个下标
             return cursor-1;
         }
 
-        public void set(E e) {
+        public void set(E e) { // 修改当前值
             if (lastRet < 0)
                 throw new IllegalStateException();
-            checkForComodification();
+            checkForComodification(); // 检查是否被修改
 
             try {
-                AbstractList.this.set(lastRet, e);
-                expectedModCount = modCount;
+                AbstractList.this.set(lastRet, e); // 调用set会更新modCount这个值
+                expectedModCount = modCount; // 上面修改元素值导致modCount被加1 这边相应地更新expectedModCount 不然下次迭代会fast-fail
             } catch (IndexOutOfBoundsException ex) {
                 throw new ConcurrentModificationException();
             }
         }
 
-        public void add(E e) {
-            checkForComodification();
+        public void add(E e) { // 在当前位置插入一个元素
+            checkForComodification(); // 修改检查
 
             try {
-                int i = cursor;
-                AbstractList.this.add(i, e);
-                lastRet = -1;
-                cursor = i + 1;
-                expectedModCount = modCount;
+                int i = cursor; // 当前下标
+                AbstractList.this.add(i, e); // 将元素根据当前下标添加进来
+                lastRet = -1; // 重置最后一次访问元素下标为-1
+                cursor = i + 1; // 更新下次迭代的下标
+                expectedModCount = modCount; // add()方法会更新modCount 相应地更新expectedModCount的值 防止下次迭代的时候fast-fail
             } catch (IndexOutOfBoundsException ex) {
                 throw new ConcurrentModificationException();
             }
@@ -480,7 +480,7 @@ public abstract class AbstractList<E> extends AbstractCollection<E> implements L
      * @throws IllegalArgumentException if the endpoint indices are out of order
      *         {@code (fromIndex > toIndex)}
      */
-    public List<E> subList(int fromIndex, int toIndex) {
+    public List<E> subList(int fromIndex, int toIndex) { // 生成集合 [fromIndex, toIndex]
         return (this instanceof RandomAccess ?
                 new RandomAccessSubList<>(this, fromIndex, toIndex) :
                 new SubList<>(this, fromIndex, toIndex));
@@ -598,7 +598,7 @@ public abstract class AbstractList<E> extends AbstractCollection<E> implements L
      * does not wish to provide fail-fast iterators, this field may be
      * ignored.
      */
-    protected transient int modCount = 0;
+    protected transient int modCount = 0; // 数组被修改的次数 transient修饰 不可被序列化 用于fast-fail策略的实现
 
     private void rangeCheckForAdd(int index) {
         if (index < 0 || index > size())
@@ -611,9 +611,9 @@ public abstract class AbstractList<E> extends AbstractCollection<E> implements L
 }
 
 class SubList<E> extends AbstractList<E> {
-    private final AbstractList<E> l;
-    private final int offset;
-    private int size;
+    private final AbstractList<E> l; // 原来的集合
+    private final int offset; // 偏移量
+    private int size; // 新集合大小
 
     SubList(AbstractList<E> list, int fromIndex, int toIndex) {
         if (fromIndex < 0)
@@ -629,24 +629,24 @@ class SubList<E> extends AbstractList<E> {
         this.modCount = l.modCount;
     }
 
-    public E set(int index, E element) {
+    public E set(int index, E element) { // 将指定下标的元素替换掉
         rangeCheck(index);
         checkForComodification();
         return l.set(index+offset, element);
     }
 
-    public E get(int index) {
+    public E get(int index) { // 获取指定下标的元素
         rangeCheck(index);
         checkForComodification();
         return l.get(index+offset);
     }
 
-    public int size() {
+    public int size() { // 新集合的大小
         checkForComodification();
         return size;
     }
 
-    public void add(int index, E element) {
+    public void add(int index, E element) { // 指定下标地方添加元素
         rangeCheckForAdd(index);
         checkForComodification();
         l.add(index+offset, element);
@@ -654,7 +654,7 @@ class SubList<E> extends AbstractList<E> {
         size++;
     }
 
-    public E remove(int index) {
+    public E remove(int index) { // 删除指定下标的元素
         rangeCheck(index);
         checkForComodification();
         E result = l.remove(index+offset);
@@ -663,7 +663,7 @@ class SubList<E> extends AbstractList<E> {
         return result;
     }
 
-    protected void removeRange(int fromIndex, int toIndex) {
+    protected void removeRange(int fromIndex, int toIndex) { // 批量删除元素 一段索引
         checkForComodification();
         l.removeRange(fromIndex+offset, toIndex+offset);
         this.modCount = l.modCount;
