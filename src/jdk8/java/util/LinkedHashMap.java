@@ -33,7 +33,7 @@ import java.io.IOException;
 /**
  * <p>Hash table and linked list implementation of the <tt>Map</tt> interface,
  * with predictable iteration order.  This implementation differs from
- * <tt>HashMap</tt> in that it maintains a doubly-linked list running through // todo 区别于HashMap：维护了双向链表 保证了顺序性
+ * <tt>HashMap</tt> in that it maintains a doubly-linked list running through // 区别于HashMap：维护了双向链表 保证了顺序性
  * all of its entries.  This linked list defines the iteration ordering,
  * which is normally the order in which keys were inserted into the map
  * (<i>insertion-order</i>).  Note that insertion order is not affected
@@ -62,7 +62,7 @@ import java.io.IOException;
  * provided to create a linked hash map whose order of iteration is the order
  * in which its entries were last accessed, from least-recently accessed to
  * most-recently (<i>access-order</i>).  This kind of map is well-suited to
- * building LRU caches.  Invoking the {@code put}, {@code putIfAbsent}, // todo 适合开发LRU缓存
+ * building LRU caches.  Invoking the {@code put}, {@code putIfAbsent}, // 适合开发LRU缓存
  * {@code get}, {@code getOrDefault}, {@code compute}, {@code computeIfAbsent},
  * {@code computeIfPresent}, or {@code merge} methods results
  * in an access to the corresponding entry (assuming it exists after the
@@ -78,7 +78,7 @@ import java.io.IOException;
  * impose a policy for removing stale mappings automatically when new mappings
  * are added to the map.
  *
- * <p>This class provides all of the optional <tt>Map</tt> operations, and // todo 跟Hashmap一样 支持null值
+ * <p>This class provides all of the optional <tt>Map</tt> operations, and // 跟Hashmap一样 支持null值
  * permits null elements.  Like <tt>HashMap</tt>, it provides constant-time
  * performance for the basic operations (<tt>add</tt>, <tt>contains</tt> and
  * <tt>remove</tt>), assuming the hash function disperses elements
@@ -90,11 +90,11 @@ import java.io.IOException;
  * is likely to be more expensive, requiring time proportional to its
  * <i>capacity</i>.
  *
- * <p>A linked hash map has two parameters that affect its performance: // todo 跟HashMap一样 initial capacity和load factor两个属性会直接影响集合的性能
+ * <p>A linked hash map has two parameters that affect its performance: // 跟HashMap一样 initial capacity和load factor两个属性会直接影响集合的性能
  * <i>initial capacity</i> and <i>load factor</i>.  They are defined precisely
  * as for <tt>HashMap</tt>.  Note, however, that the penalty for choosing an
  * excessively high value for initial capacity is less severe for this class
- * than for <tt>HashMap</tt>, as iteration times for this class are unaffected // todo 区别于hashMap 迭代的时间消耗不受容量大小影响 在HashMap中 如果容量太小 意味着单个桶的迭代时间可能会更长
+ * than for <tt>HashMap</tt>, as iteration times for this class are unaffected // 区别于hashMap 迭代的时间消耗不受容量大小影响 在HashMap中 如果容量太小 意味着单个桶的迭代时间可能会更长
  * by capacity.
  *
  * <p><strong>Note that this implementation is not synchronized.</strong>
@@ -107,12 +107,12 @@ import java.io.IOException;
  * {@link Collections#synchronizedMap Collections.synchronizedMap}
  * method.  This is best done at creation time, to prevent accidental
  * unsynchronized access to the map:<pre>
- *   Map m = Collections.synchronizedMap(new LinkedHashMap(...));</pre> // todo 并发场景下的使用方式
+ *   Map m = Collections.synchronizedMap(new LinkedHashMap(...));</pre> // 并发场景下的使用方式 Collections.synchronizedMap
  *
  * A structural modification is any operation that adds or deletes one or more
  * mappings or, in the case of access-ordered linked hash maps, affects
  * iteration order.  In insertion-ordered linked hash maps, merely changing
- * the value associated with a key that is already contained in the map is not // todo 什么场景才会导致modCound变化呢 也就是结构性变化：增加key-value、删除key-value 仅仅改变value的值是不算结构性变化的
+ * the value associated with a key that is already contained in the map is not // 什么场景才会导致modCound变化呢 也就是结构性变化：增加key-value、删除key-value 仅仅改变value的值是不算结构性变化的
  * a structural modification.  <strong>In access-ordered linked hash maps,
  * merely querying the map with <tt>get</tt> is a structural modification.
  * </strong>)
@@ -163,7 +163,7 @@ import java.io.IOException;
 public class LinkedHashMap<K,V>
     extends HashMap<K,V>
     implements Map<K,V>
-{
+{ // LinkedHashMap继承了HashMap 维护了双向链表 通过空间代价置换了有序性 重写了HashMap中的空实现的钩子方法 对双链表进行维护
 
     /*
      * Implementation note.  A previous version of this class was
@@ -189,7 +189,7 @@ public class LinkedHashMap<K,V>
     /**
      * HashMap.Node subclass for normal LinkedHashMap entries.
      */
-    static class Entry<K,V> extends HashMap.Node<K,V> {
+    static class Entry<K,V> extends HashMap.Node<K,V> { // 节点也是继承了HashMap中的Node节点 增加了before after实现双向链表的指针域
         Entry<K,V> before, after; // before after域用于存储双向链表的前驱 后继节点
         Entry(int hash, K key, V value, Node<K,V> next) {
             super(hash, key, value, next); // next域用于单链表存储与桶中
@@ -201,7 +201,7 @@ public class LinkedHashMap<K,V>
     /**
      * The head (eldest) of the doubly linked list. 对于一个双向链表 只要知道头节点跟尾节点就可以进行一切的操作
      */
-    transient LinkedHashMap.Entry<K,V> head; // 双向链表头节点 旧数据存在头节点
+    transient LinkedHashMap.Entry<K,V> head; // 双向链表头节点 旧数据存在头节点 默认情况下accessOrder属性值为false 按照put的顺序访问元素 拿到head节点 往后遍历 就是put元素的顺序
 
     /**
      * The tail (youngest) of the doubly linked list.
