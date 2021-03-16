@@ -57,7 +57,7 @@ public final class Compiler  {
             new java.security.PrivilegedAction<Void>() {
                 public Void run() {
                     boolean loaded = false;
-                    String jit = System.getProperty("java.compiler");
+                    String jit = System.getProperty("java.compiler"); // JIT编译器
                     if ((jit != null) && (!jit.equals("NONE")) &&
                         (!jit.equals("")))
                     {
