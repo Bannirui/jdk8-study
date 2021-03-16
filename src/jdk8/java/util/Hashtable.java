@@ -34,14 +34,14 @@ import sun.misc.SharedSecrets;
 
 /**
  * This class implements a hash table, which maps keys to values. Any
- * non-<code>null</code> object can be used as a key or as a value. <p>
+ * non-<code>null</code> object can be used as a key or as a value. <p> // HashTable中不存在null的key
  *
  * To successfully store and retrieve objects from a hashtable, the
  * objects used as keys must implement the <code>hashCode</code>
  * method and the <code>equals</code> method. <p>
  *
  * An instance of <code>Hashtable</code> has two parameters that affect its
- * performance: <i>initial capacity</i> and <i>load factor</i>.  The
+ * performance: <i>initial capacity</i> and <i>load factor</i>.  The // 跟HashMap一样 两个重要的属性：initial capacity和load factory
  * <i>capacity</i> is the number of <i>buckets</i> in the hash table, and the
  * <i>initial capacity</i> is simply the capacity at the time the hash table
  * is created.  Note that the hash table is <i>open</i>: in the case of a "hash
@@ -52,7 +52,7 @@ import sun.misc.SharedSecrets;
  * the implementation.  The exact details as to when and whether the rehash
  * method is invoked are implementation-dependent.<p>
  *
- * Generally, the default load factor (.75) offers a good tradeoff between
+ * Generally, the default load factor (.75) offers a good tradeoff between // 负载因子=0.75 经验值 在空间和时间消耗上的平衡
  * time and space costs.  Higher values decrease the space overhead but
  * increase the time cost to look up an entry (which is reflected in most
  * <tt>Hashtable</tt> operations, including <tt>get</tt> and <tt>put</tt>).<p>
@@ -135,12 +135,12 @@ public class Hashtable<K,V>
     /**
      * The hash table data.
      */
-    private transient Entry<?,?>[] table;
+    private transient Entry<?,?>[] table; // entry数组
 
     /**
      * The total number of entries in the hash table.
      */
-    private transient int count;
+    private transient int count; // entry数组中被使用的桶位数量
 
     /**
      * The table is rehashed when its size exceeds this threshold.  (The
@@ -148,14 +148,14 @@ public class Hashtable<K,V>
      *
      * @serial
      */
-    private int threshold;
+    private int threshold; // 阈值 扩容阈值
 
     /**
      * The load factor for the hashtable.
      *
      * @serial
      */
-    private float loadFactor;
+    private float loadFactor; // 加载因子
 
     /**
      * The number of times this Hashtable has been structurally modified
@@ -164,7 +164,7 @@ public class Hashtable<K,V>
      * rehash).  This field is used to make iterators on Collection-views of
      * the Hashtable fail-fast.  (See ConcurrentModificationException).
      */
-    private transient int modCount = 0;
+    private transient int modCount = 0; // 结构性修改次数 用于迭代的时候fast-fail机制的实现
 
     /** use serialVersionUID from JDK 1.0.2 for interoperability */
     private static final long serialVersionUID = 1421746759512286392L;
