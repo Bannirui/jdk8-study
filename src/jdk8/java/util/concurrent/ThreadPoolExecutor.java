@@ -213,7 +213,7 @@ import java.util.*;
  *
  * <ol>
  *
- * <li> In the default {@link ThreadPoolExecutor.AbortPolicy}, the
+ * <li> In the default {@link ThreadPoolExecutor.AbortPolicy}, the // 默认的拒绝策略 抛异常
  * handler throws a runtime {@link RejectedExecutionException} upon
  * rejection. </li>
  *
