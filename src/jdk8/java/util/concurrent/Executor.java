@@ -137,5 +137,5 @@ public interface Executor { // 线程池顶级接口，只定义了一个执行�
      * accepted for execution
      * @throws NullPointerException if command is null
      */
-    void execute(Runnable command); // 执行无返回值任务
+    void execute(Runnable command); // 执行无返回值任务 入参是Runnable类型的任务 这个接口的run方法没有返回值
 }
