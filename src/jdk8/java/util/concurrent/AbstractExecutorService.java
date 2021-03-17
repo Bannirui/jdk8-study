@@ -83,7 +83,7 @@ public abstract class AbstractExecutorService implements ExecutorService { // �
      * the underlying task
      * @since 1.6
      */
-    protected <T> RunnableFuture<T> newTaskFor(Runnable runnable, T value) {
+    protected <T> RunnableFuture<T> newTaskFor(Runnable runnable, T value) { // Runnable接口的run方法没有返回值 使用指定的value作为任务执行返回值 封装成FutureTask
         return new FutureTask<T>(runnable, value);
     }
 
@@ -98,7 +98,7 @@ public abstract class AbstractExecutorService implements ExecutorService { // �
      * cancellation of the underlying task
      * @since 1.6
      */
-    protected <T> RunnableFuture<T> newTaskFor(Callable<T> callable) { // 普通任务封装成FutureTask
+    protected <T> RunnableFuture<T> newTaskFor(Callable<T> callable) { // Callable接口的call方法有返回值 将任务封装成FutureTask
         return new FutureTask<T>(callable);
     }
 
@@ -108,8 +108,8 @@ public abstract class AbstractExecutorService implements ExecutorService { // �
      */
     public Future<?> submit(Runnable task) { // Runnable接口方法run没有返回值 但是可以通过Future判断任务是否执行完
         if (task == null) throw new NullPointerException();
-        RunnableFuture<Void> ftask = newTaskFor(task, null);
-        execute(ftask);
+        RunnableFuture<Void> ftask = newTaskFor(task, null); // 将Runnable封装成FutureTask 没有返回值 返回值是null
+        execute(ftask); // 任务交给线程池执行
         return ftask;
     }
 
@@ -119,8 +119,8 @@ public abstract class AbstractExecutorService implements ExecutorService { // �
      */
     public <T> Future<T> submit(Runnable task, T result) { // Runnable接口方法run没有返回值 如果run方法正常执行完毕 结果就是result
         if (task == null) throw new NullPointerException();
-        RunnableFuture<T> ftask = newTaskFor(task, result);
-        execute(ftask);
+        RunnableFuture<T> ftask = newTaskFor(task, result); // Runnable没有返回值 指定result作为任务执行的结果返回值 封装成FutureTask
+        execute(ftask); // 任务交给线程池执行
         return ftask;
     }
 
@@ -148,7 +148,7 @@ public abstract class AbstractExecutorService implements ExecutorService { // �
             throw new IllegalArgumentException();
         ArrayList<Future<T>> futures = new ArrayList<Future<T>>(ntasks);
         ExecutorCompletionService<T> ecs =
-            new ExecutorCompletionService<T>(this);
+            new ExecutorCompletionService<T>(this); // 为当前对象创建ExecutorCompletionService实例 目的是为了是当前对象能够操作任务队列
 
         // For efficiency, especially in executors with limited
         // parallelism, check to see if previously submitted tasks are
@@ -160,7 +160,7 @@ public abstract class AbstractExecutorService implements ExecutorService { // �
             // Record exceptions so that if we fail to obtain any
             // result, we can throw the last exception we got.
             ExecutionException ee = null;
-            final long deadline = timed ? System.nanoTime() + nanos : 0L; // 是否需要超时
+            final long deadline = timed ? System.nanoTime() + nanos : 0L; // 是否需要超时 如果可以超时的话计算出总共的超时时间deadline
             Iterator<? extends Callable<T>> it = tasks.iterator();
 
             // Start one task for sure; the rest incrementally
