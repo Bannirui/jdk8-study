@@ -72,7 +72,7 @@ public abstract class AbstractExecutorService implements ExecutorService { // �
 
     /**
      * Returns a {@code RunnableFuture} for the given runnable and default
-     * value.
+     * value. // 把Runnable转换为RunnableFuture RunnableFuture是一个接口 这个接口继承了Runnable和Future FutureTask是RunnableFuture的一个实现 主要对任务进行各种管理 关系：Runnable+Future=》RunnableFuture=》FutureTask FutureTask本身就是一个任务 而且具备对任务的管理功能 可以通过get()方法拿到任务的执行结果
      *
      * @param runnable the runnable task being wrapped
      * @param value the default value for the returned future
@@ -104,7 +104,7 @@ public abstract class AbstractExecutorService implements ExecutorService { // �
 
     /**
      * @throws RejectedExecutionException {@inheritDoc}
-     * @throws NullPointerException       {@inheritDoc}
+     * @throws NullPointerException       {@inheritDoc} // submit是使用线程池时提交任务的方法 支持Runnable和Callable两种任务的提交 execute方法是AbstractExecutorService的子类ThreadPoolExecutor实现的 不管是哪种入参 最终execute执行的任务都是FutureTask
      */
     public Future<?> submit(Runnable task) { // Runnable接口方法run没有返回值 但是可以通过Future判断任务是否执行完
         if (task == null) throw new NullPointerException();
@@ -210,7 +210,7 @@ public abstract class AbstractExecutorService implements ExecutorService { // �
     }
 
     public <T> T invokeAny(Collection<? extends Callable<T>> tasks)
-        throws InterruptedException, ExecutionException { // tasks任务列表中只要有一个任务执行成功就返回 取消剩余已经提交没有执行的任务
+        throws InterruptedException, ExecutionException { // 给定任务中一个执行成功就返回 一旦invokeAny方法正常返回或者抛出异常 那些没有完成的任务将被取消
         try {
             return doInvokeAny(tasks, false, 0);
         } catch (TimeoutException cannotHappen) {
