@@ -98,3 +98,76 @@
 * 传统上，使用synchronized关键字+wait+notify/notifyAll来实现多个线程之间的协调和通信，整个过程都是由jvm来帮助实现的，开发者无需了解底层实现细节
 * jdk1.5开始，并发包提供了Lock+Condition(await+signal/signalAll)来实现多个线程之间的协调和通信，整个过程都是由开发者来控制的，而且相比于传统方式，更加灵活，功能也更加强大
 * Thread.sleep与await（或者object的wait方法）的本质区别：sleep方法本质不会释放锁，而await会释放锁，并且在signal之后，还需要重新获取锁才能继续执行(该行为与Object的wait方法完全一致)
+
+---
+
+> volatile
+
+* volatile的作用
+  * 实现long/double 8个字节长度类型变量的原子操作(64位的数字写入内存是分两次 高32位写入和低32位写入)
+  * 防止指令重排序
+  * 实现变量的可见性
+
+* 当使用volatile修饰变量时，应用不会从寄存器中获取该变量，而是从驻内存中获取
+* 如果要实现volatile写操作的原子性，那么在等号右侧的赋值变量中就不能出现被多线程所共享的变量，哪怕这个变量也是volatile修饰的也不行
+
+* volatile和锁的比较
+  * volatile可以确保对写操作的原子性 但不具备排他性
+  * 使用锁可能会导致线程上下文的切换(内核态和用户态之间) 但使用volatile不会出现这种情况
+  
+* 防止指令重排序与实现变量的可见性都是通过内存屏障实现的 memory barrier
+```text
+volatile写入
+
+int a =1;
+String s = "dingrui";
+
+内存屏障 Release Barrier: 释放屏障-防止下面的volatile与上面的所有操作指令重排序
+volatile boolean b =true;
+内存屏障 Store Barrier: 存储屏障-刷新处理器缓存 结果就是确保该存储屏障之前的一切操作生成的结果对其他处理器可见
+```
+
+```text
+volatile读取
+
+内存屏障 Load Barrier: 加载屏障-可以刷新处理器缓存 同步其他处理器对该volatile变量的修改结果
+boolean c = b;
+内存屏障 Acquire Barrier: 获取屏障-可以防止上面的volatile读取操作与下面所有操作语句指令重排序
+```
+
+* 对于volatile关键字修饰的变量的读写操作 本质都是通过内存屏障来执行的
+* 内存屏障兼具了2个能力
+  * 防止指令重排序
+  * 实现变量内存的可见性
+* 对于读取操作 volatile可以确保该操作与后续的读写操作不会进行指令重排序
+* 对于修改操作 volatile可以确保该操作与上面的读写操作不会进行指令重排序
+* 锁同样具备变量内存可见性与防止指令重排序
+
+```text
+synchronized锁
+
+monitorenter
+内存屏障: Acquire Barrier
+...
+内存屏障: Release Barrier
+monitorexit
+```
+
+---
+
+> java内存模型
+
+* Java Memory Model Java内存模型JMM规范定义了3个问题
+  * 变量的原子性问题
+  * 变量的可见性问题
+  * 变量修改的时序性问题
+
+* happen-before规则
+  * 顺序执行规则(限定在单个线程上)：该线程的每个动作都happen-before它后面的动作
+  * 隐式锁(monitor)规则：unlock happen-before lock 之前的线程对于同步代码块的所有执行结果对于后续获取锁的线程来说都是可见的
+  * volatile读写规则：对于一个volatile变量的写操作一定会happen-before后续对该变量的读操作
+  * 多线程的启动规则：Thread对象的start方法happen-before该线程run方法的任何一个动作 包括在其中启动的任何子线程
+  * 多线程的终止规则：一个线程启动了一个子线程 并且调用了子线程的join方法等待其结束 那么当线程结束后 父线程的接下来的所有操作都可以看到子线程run方法中的执行结果
+  * 线程的中断规则：可以待哦用interrupt方法中断线程 这个调用happen-before对该线程中断的检查isInterrupted
+  
+  
