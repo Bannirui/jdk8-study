@@ -153,7 +153,7 @@ public interface ExecutorService extends Executor { // 线程池次级接口，�
      *         or the security manager's {@code checkAccess} method
      *         denies access.
      */
-    void shutdown(); // 关闭线程池，不再接受新任务，但已经提交的任务会执行完成
+    void shutdown(); // 关闭线程池，不再接受新任务，也不会等待之前已经提交的任务执行完成 如果需要等待已经提交的任务执行完成再关闭就使用awaitTermination方法
 
     /**
      * Attempts to stop all actively executing tasks, halts the
@@ -185,7 +185,7 @@ public interface ExecutorService extends Executor { // 线程池次级接口，�
      *
      * @return {@code true} if this executor has been shut down
      */
-    boolean isShutdown(); // 检查线程池是否已关闭
+    boolean isShutdown(); // 检查线程池是否已关闭 返回true表示已经关闭 返回false表示没有关闭
 
     /**
      * Returns {@code true} if all tasks have completed following shut down.
@@ -194,7 +194,7 @@ public interface ExecutorService extends Executor { // 线程池次级接口，�
      *
      * @return {@code true} if all tasks have completed following shut down
      */
-    boolean isTerminated(); // 检查线程池是否已终止，只有在shutdown()或shutdownNow()之后调用才有可能为true
+    boolean isTerminated(); // 检查线程池所有的任务是否已终止，所有任务已经全部终止返回true，只有在shutdown()或shutdownNow()之后调用才有可能为true
 
     /**
      * Blocks until all tasks have completed execution after a shutdown
@@ -208,7 +208,7 @@ public interface ExecutorService extends Executor { // 线程池次级接口，�
      * @throws InterruptedException if interrupted while waiting
      */
     boolean awaitTermination(long timeout, TimeUnit unit)
-        throws InterruptedException; // 在指定时间内线程池达到终止状态了才会返回true
+        throws InterruptedException; // 在指定超时时间内阻塞 等待所有的任务执行完成
 
     /**
      * Submits a value-returning task for execution and returns a
@@ -233,7 +233,7 @@ public interface ExecutorService extends Executor { // 线程池次级接口，�
      *         scheduled for execution
      * @throws NullPointerException if the task is null
      */
-    <T> Future<T> submit(Callable<T> task); // 执行有返回值的任务，任务的返回值为task.call()的结果
+    <T> Future<T> submit(Callable<T> task); // 执行有返回值的任务，任务的返回值为task.call()的结果 使用future.get()可以阻塞等待任务结果的返回
 
     /**
      * Submits a Runnable task for execution and returns a Future
@@ -248,7 +248,7 @@ public interface ExecutorService extends Executor { // 线程池次级接口，�
      *         scheduled for execution
      * @throws NullPointerException if the task is null
      */
-    <T> Future<T> submit(Runnable task, T result); // 执行有返回值的任务，任务的返回值为这里传入的result 当然只有当任务执行完成了调用get()时才会返回
+    <T> Future<T> submit(Runnable task, T result); // 执行有返回值的任务，Runnable本身的run方法没有返回值 指定任务的返回值为这里传入的result 使用future.get()方法可以阻塞等待任务结果的返回
 
     /**
      * Submits a Runnable task for execution and returns a Future
@@ -285,7 +285,7 @@ public interface ExecutorService extends Executor { // 线程池次级接口，�
      *         scheduled for execution
      */
     <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks)
-        throws InterruptedException; // 批量执行任务，只有当这些任务都完成了这个方法才会返回
+        throws InterruptedException; // 给定任务集合 返回已经执行完成的Future集合 每个返回的Future的isDone都是true的状态
 
     /**
      * Executes the given tasks, returning a list of Futures holding
@@ -317,7 +317,7 @@ public interface ExecutorService extends Executor { // 线程池次级接口，�
      */
     <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks,
                                   long timeout, TimeUnit unit)
-        throws InterruptedException; // 在指定时间内批量执行任务，未执行完成的任务将被取消 这里的timeout是所有任务的总时间，不是单个任务的时间
+        throws InterruptedException; // 给定任务集合 返回已经执行完的Future集合 每个返回的Future的isDone状态都是true 这个方法具有timeout超时判断 timeout超时时间是整个任务集合所有任务的合集超时时间 不是其中某个任务的超时
 
     /**
      * Executes the given tasks, returning the result
@@ -339,7 +339,7 @@ public interface ExecutorService extends Executor { // 线程池次级接口，�
      *         for execution
      */
     <T> T invokeAny(Collection<? extends Callable<T>> tasks)
-        throws InterruptedException, ExecutionException; // 返回任意一个已完成任务的执行结果，未执行完成的任务将被取消
+        throws InterruptedException, ExecutionException; // 返回任意一个已完成任务的执行结果，未执行完成的任务将被取消 如果抛异常 将取消没有执行的任务
 
     /**
      * Executes the given tasks, returning the result
@@ -366,5 +366,5 @@ public interface ExecutorService extends Executor { // 线程池次级接口，�
      */
     <T> T invokeAny(Collection<? extends Callable<T>> tasks,
                     long timeout, TimeUnit unit)
-        throws InterruptedException, ExecutionException, TimeoutException; // 在指定时间内如果有任务已完成，则返回任意一个已完成任务的执行结果，未执行完成的任务将被取消
+        throws InterruptedException, ExecutionException, TimeoutException; // 在指定时间内如果有任务已完成，则返回任意一个已完成任务的执行结果，未执行完成的任务将被取消 如果抛异常 将取消其余没有执行的任务 这个方法具有超时时间
 }
