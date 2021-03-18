@@ -48,20 +48,20 @@ package java.util.concurrent.locks;
  * @author Doug Lea
  */
 public abstract class AbstractOwnableSynchronizer
-    implements java.io.Serializable {
+    implements java.io.Serializable { // 这个类做的事情就是在独占锁的模式下设置独占线程
 
     /** Use serial ID even though all fields transient. */
     private static final long serialVersionUID = 3737899427754241961L;
 
     /**
-     * Empty constructor for use by subclasses.
+     * Empty constructor for use by subclasses. // 空构造方法 仅仅是为了给子类继承 隐式调用
      */
     protected AbstractOwnableSynchronizer() { }
 
     /**
      * The current owner of exclusive mode synchronization.
      */
-    private transient Thread exclusiveOwnerThread;
+    private transient Thread exclusiveOwnerThread; // 独占模式下的独占线程
 
     /**
      * Sets the thread that currently owns exclusive access.

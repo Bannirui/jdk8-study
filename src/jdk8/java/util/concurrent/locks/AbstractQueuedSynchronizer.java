@@ -34,11 +34,12 @@
  */
 
 package java.util.concurrent.locks;
-import java.util.concurrent.TimeUnit;
+import sun.misc.Unsafe;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import sun.misc.Unsafe;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Provides a framework for implementing blocking locks and related
@@ -301,7 +302,7 @@ public abstract class AbstractQueuedSynchronizer
     /**
      * Wait queue node class.
      *
-     * <p>The wait queue is a variant of a "CLH" (Craig, Landin, and
+     * <p>The wait queue is a variant of a "CLH" (Craig, Landin, and // 等待队列是CLH锁队列
      * Hagersten) lock queue. CLH locks are normally used for
      * spinlocks.  We instead use them for blocking synchronizers, but
      * use the same basic tactic of holding some of the control
@@ -377,7 +378,7 @@ public abstract class AbstractQueuedSynchronizer
      * expert group, for helpful ideas, discussions, and critiques
      * on the design of this class.
      */
-    static final class Node {
+    static final class Node { // 等待队列中存储线程的节点类
         /** Marker to indicate a node is waiting in shared mode */
         static final Node SHARED = new Node(); // 标识一个节点是共享模式
         /** Marker to indicate a node is waiting in exclusive mode */
@@ -475,12 +476,12 @@ public abstract class AbstractQueuedSynchronizer
          * we save a field by using special value to indicate shared
          * mode.
          */
-        Node nextWaiter; // 下一个等待在条件上的节点（Condition锁时使用）
+        Node nextWaiter; // 下一个等待在条件上的节点（Condition锁时使用）存储condition队列的后继节点
 
         /**
          * Returns true if node is waiting in shared mode.
          */
-        final boolean isShared() { // 是否是共享模式
+        final boolean isShared() { // 是否是共享模式 如果是共享模式下等待 就返回true
             return nextWaiter == SHARED;
         }
 
@@ -499,7 +500,7 @@ public abstract class AbstractQueuedSynchronizer
                 return p;
         }
 
-        Node() {    // Used to establish initial head or SHARED marker
+        Node() {    // Used to establish initial head or SHARED marker // 空参构造方法 用于创建头节点或者共享标识
         }
 
         Node(Thread thread, Node mode) {     // Used by addWaiter
@@ -519,13 +520,13 @@ public abstract class AbstractQueuedSynchronizer
      * If head exists, its waitStatus is guaranteed not to be
      * CANCELLED.
      */
-    private transient volatile Node head; // 队列的头节点
+    private transient volatile Node head; // 队列的头节点 等待队列的头节点 延迟初始化 除了初始化之外只能通过setHead方法进行头节点更新 如果头节点存在 保证这个头节点的状态不被取消
 
     /**
      * Tail of the wait queue, lazily initialized.  Modified only via
      * method enq to add new wait node.
      */
-    private transient volatile Node tail; // 队列的尾节点
+    private transient volatile Node tail; // 队列的尾节点 等待队列的尾接待你 延迟初始化 只能通过enq方法添加新的等待节点到尾节点上
 
     /**
      * The synchronization state.
@@ -537,7 +538,7 @@ public abstract class AbstractQueuedSynchronizer
      * This operation has memory semantics of a {@code volatile} read.
      * @return current state value
      */
-    protected final int getState() {
+    protected final int getState() { // 返回当前状态
         return state;
     }
 
@@ -546,7 +547,7 @@ public abstract class AbstractQueuedSynchronizer
      * This operation has memory semantics of a {@code volatile} write.
      * @param newState the new state value
      */
-    protected final void setState(int newState) {
+    protected final void setState(int newState) { // 设置同步状态
         state = newState;
     }
 
@@ -603,7 +604,7 @@ public abstract class AbstractQueuedSynchronizer
      * @return the new node
      */
     private Node addWaiter(Node mode) { // 线程入队 返回新入队的线程节点
-        Node node = new Node(Thread.currentThread(), mode); // 新建一个节点
+        Node node = new Node(Thread.currentThread(), mode); // 新建一个节点 尾当前线程创建节点并且给定模式 独占或者共享
         // Try the fast path of enq; backup to full enq on failure // 先尝试将新节点加到尾节点后面 如果成功了就返回新节点 如果没成功就调用enq()方法不断尝试
         Node pred = tail; // 尾节点
         if (pred != null) { // 如果尾节点不为空
@@ -612,7 +613,7 @@ public abstract class AbstractQueuedSynchronizer
                 pred.next = node; // 更换尾节点成功之后 将旧的尾节点的后继指针指向新节点
                 return node; // 返回新节点
             }
-        }
+        } // 代码到这说明cas添加新节点到尾节点失败了 就再调用enq方法保证节点入队成功
         enq(node); // 代码走到这说明上面 尝试入队新的节点没有成功 就调用enq()方法进行处理 两种情况 第1种：tail尾节点为空 当前入队的线程节点是第一个 第2种：tail节点不为空 但是cas更换尾节点失败了
         return node;
     }
