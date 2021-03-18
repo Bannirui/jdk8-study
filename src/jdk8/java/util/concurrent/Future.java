@@ -148,7 +148,7 @@ public interface Future<V> {
      * @throws InterruptedException if the current thread was interrupted
      * while waiting
      */
-    V get() throws InterruptedException, ExecutionException;
+    V get() throws InterruptedException, ExecutionException; // 取任务的执行结果 如果任务还没完成 会阻塞直到有结果
 
     /**
      * Waits if necessary for at most the given time for the computation
@@ -165,5 +165,5 @@ public interface Future<V> {
      * @throws TimeoutException if the wait timed out
      */
     V get(long timeout, TimeUnit unit)
-        throws InterruptedException, ExecutionException, TimeoutException;
+        throws InterruptedException, ExecutionException, TimeoutException; // 等待最多超时时间 如果时间到了任务还没执行完 抛出异常
 }

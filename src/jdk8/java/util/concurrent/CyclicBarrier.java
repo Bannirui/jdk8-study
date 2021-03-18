@@ -157,7 +157,7 @@ public class CyclicBarrier {
     /** Condition to wait on until tripped */
     private final Condition trip = lock.newCondition(); // 条件锁 等达到一定数量了再唤醒
     /** The number of parties */
-    private final int parties; // 需要等待的线程数量
+    private final int parties; // 需要等待的线程数量 这个属性被final修饰 构造方法中赋值之后不再更新 CyclicBarrier设计成可重用的关键 使用这个属性再次赋值恢复到最初状态
     /* The command to run when tripped */
     private final Runnable barrierCommand; // 当唤醒的时候执行的命令
     /** The current generation */
@@ -213,12 +213,12 @@ public class CyclicBarrier {
 
             int index = --count; // count-1
             if (index == 0) {  // tripped // 如果数量减到0了，走这段逻辑（最后一个线程走这里）
-                boolean ranAction = false;
+                boolean ranAction = false; // 标记构造方法传进来的Runnable是否已经执行
                 try {
                     final Runnable command = barrierCommand; // 如果初始化的时候传了命令，这里执行
                     if (command != null)
                         command.run();
-                    ranAction = true;
+                    ranAction = true; // 表示Runnable的run方法已经执行结束
                     nextGeneration(); // 调用下一代方法
                     return 0;
                 } finally {
