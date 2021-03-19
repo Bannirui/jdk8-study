@@ -34,9 +34,10 @@
  */
 
 package java.util.concurrent.atomic;
-import java.util.function.UnaryOperator;
-import java.util.function.BinaryOperator;
 import sun.misc.Unsafe;
+
+import java.util.function.BinaryOperator;
+import java.util.function.UnaryOperator;
 
 /**
  * An object reference that may be updated atomically. See the {@link
@@ -59,7 +60,7 @@ public class AtomicReference<V> implements java.io.Serializable {
         } catch (Exception ex) { throw new Error(ex); }
     }
 
-    private volatile V value;
+    private volatile V value; // volatile修饰变量 保证线程可见性
 
     /**
      * Creates a new AtomicReference with the given initial value.
