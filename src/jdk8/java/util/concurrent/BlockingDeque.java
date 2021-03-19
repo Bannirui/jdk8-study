@@ -197,7 +197,7 @@ import java.util.*;
  * @author Doug Lea
  * @param <E> the type of elements held in this collection
  */
-public interface BlockingDeque<E> extends BlockingQueue<E>, Deque<E> {
+public interface BlockingDeque<E> extends BlockingQueue<E>, Deque<E> { // 双端阻塞队列
     /*
      * We have "diamond" multiple interface inheritance here, and that
      * introduces ambiguities.  Methods might end up with different
