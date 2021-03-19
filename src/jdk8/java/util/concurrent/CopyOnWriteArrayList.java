@@ -33,25 +33,13 @@
  */
 
 package java.util.concurrent;
-import java.util.AbstractList;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.ConcurrentModificationException;
-import java.util.Iterator;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.RandomAccess;
-import java.util.Spliterator;
-import java.util.Spliterators;
+import sun.misc.SharedSecrets;
+
+import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
-import sun.misc.SharedSecrets;
 
 /**
  * A thread-safe variant of {@link java.util.ArrayList} in which all mutative
@@ -91,7 +79,7 @@ import sun.misc.SharedSecrets;
  * @param <E> the type of elements held in this collection
  */
 public class CopyOnWriteArrayList<E>
-    implements List<E>, RandomAccess, Cloneable, java.io.Serializable { // 集合实现了Serializable 但是属性要么是static修饰的要么是transient修饰的 手动实现序列化的方法writeObject中s.defaultWriteObject()不会写入任何的属性到流中
+    implements List<E>, RandomAccess, Cloneable, java.io.Serializable { // 集合实现了Serializable 但是属性要么是static修饰的要么是transient修饰的 手动实现序列化的方法writeObject中s.defaultWriteObject()不会写入任何的属性到流中 读写分离的思想增加了并发量 适合写多读少的场景使用 会存在数据不一致的情况 读延迟
     private static final long serialVersionUID = 8673264195747942595L;
 
     /** The lock protecting all mutators */
@@ -407,15 +395,15 @@ public class CopyOnWriteArrayList<E>
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
-            Object[] elements = getArray();
-            E oldValue = get(elements, index);
+            Object[] elements = getArray(); // 当前数组
+            E oldValue = get(elements, index); // 索引对应的老值
 
-            if (oldValue != element) {
+            if (oldValue != element) { // 要设置的新值跟老值不一样 把老的数组复制出来修改对应的索引的值 结束了再将数组set回去 借助volatile的内存屏障作用通知其他线程写结束
                 int len = elements.length;
                 Object[] newElements = Arrays.copyOf(elements, len);
                 newElements[index] = element;
                 setArray(newElements);
-            } else {
+            } else { // 要设置的新值跟老值一样 就是等于没变 再将数组set回去 借助volatile的作用通知其他线程写结束
                 // Not quite a no-op; ensures volatile write semantics
                 setArray(elements);
             }
@@ -431,7 +419,7 @@ public class CopyOnWriteArrayList<E>
      * @param e element to be appended to this list
      * @return {@code true} (as specified by {@link Collection#add})
      */
-    public boolean add(E e) {
+    public boolean add(E e) { // 写操作 将老数组复制出来 将要添加元素添加到新的数组中 结束了再将新数组set回去 借助volatile的语义通知其他线程写结束
         final ReentrantLock lock = this.lock;
         lock.lock(); // 加锁
         try {
@@ -453,7 +441,7 @@ public class CopyOnWriteArrayList<E>
      *
      * @throws IndexOutOfBoundsException {@inheritDoc}
      */
-    public void add(int index, E element) {
+    public void add(int index, E element) { // 指定索引位置的写入
         final ReentrantLock lock = this.lock;
         lock.lock(); // 加锁
         try {

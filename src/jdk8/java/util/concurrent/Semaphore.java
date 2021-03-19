@@ -153,7 +153,7 @@ import java.util.concurrent.locks.AbstractQueuedSynchronizer;
  * @since 1.5
  * @author Doug Lea
  */
-public class Semaphore implements java.io.Serializable {
+public class Semaphore implements java.io.Serializable { // 设置信号量也就是设置state值 获得信号量==减少AQS的state 释放信号量==增加AQS的state
     private static final long serialVersionUID = -3222578661600680210L;
     /** All mechanics via AbstractQueuedSynchronizer subclass */
     private final Sync sync;
@@ -163,7 +163,7 @@ public class Semaphore implements java.io.Serializable {
      * to represent permits. Subclassed into fair and nonfair
      * versions.
      */
-    abstract static class Sync extends AbstractQueuedSynchronizer {
+    abstract static class Sync extends AbstractQueuedSynchronizer { // 继承AQS
         private static final long serialVersionUID = 1192457210091910933L;
 
         Sync(int permits) { // 构造方法，传入许可次数，放入state中
@@ -175,7 +175,7 @@ public class Semaphore implements java.io.Serializable {
         }
 
         final int nonfairTryAcquireShared(int acquires) { // 非公平模式尝试获取许可
-            for (;;) {
+            for (;;) { // AQS实现的锁机制 使用了大量的for死循环自旋机制 一般当成功了才退出这一个出口 在并发场景高的情况下线程竞争激烈 造成了cpu的空转
                 int available = getState(); // 看看还有几个许可
                 int remaining = available - acquires; // 减去这次需要获取的许可还剩下几个许可
                 if (remaining < 0 || // 如果剩余许可小于0了则直接返回
