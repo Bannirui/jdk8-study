@@ -28,17 +28,18 @@ package java.lang.reflect;
 import sun.reflect.CallerSensitive;
 import sun.reflect.FieldAccessor;
 import sun.reflect.Reflection;
-import sun.reflect.generics.repository.FieldRepository;
-import sun.reflect.generics.factory.CoreReflectionFactory;
-import sun.reflect.generics.factory.GenericsFactory;
-import sun.reflect.generics.scope.ClassScope;
-import java.lang.annotation.Annotation;
-import java.util.Map;
-import java.util.Objects;
 import sun.reflect.annotation.AnnotationParser;
 import sun.reflect.annotation.AnnotationSupport;
 import sun.reflect.annotation.TypeAnnotation;
 import sun.reflect.annotation.TypeAnnotationParser;
+import sun.reflect.generics.factory.CoreReflectionFactory;
+import sun.reflect.generics.factory.GenericsFactory;
+import sun.reflect.generics.repository.FieldRepository;
+import sun.reflect.generics.scope.ClassScope;
+
+import java.lang.annotation.Annotation;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * A {@code Field} provides information about, and dynamic access to, a
@@ -60,15 +61,15 @@ import sun.reflect.annotation.TypeAnnotationParser;
  * @author Nakul Saraiya
  */
 public final
-class Field extends AccessibleObject implements Member {
+class Field extends AccessibleObject implements Member { // Field的作用是获取和设置成员变量的属性值
 
     private Class<?>            clazz;
     private int                 slot;
     // This is guaranteed to be interned by the VM in the 1.4
     // reflection implementation
-    private String              name;
-    private Class<?>            type;
-    private int                 modifiers;
+    private String              name; // 名称
+    private Class<?>            type; // 类型
+    private int                 modifiers; // 修饰符
     // Generics and annotations support
     private transient String    signature;
     // generic info repository; lazily initialized
