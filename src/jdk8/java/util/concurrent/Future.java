@@ -116,7 +116,7 @@ public interface Future<V> {
      * typically because it has already completed normally;
      * {@code true} otherwise
      */
-    boolean cancel(boolean mayInterruptIfRunning);
+    boolean cancel(boolean mayInterruptIfRunning); // 尝试取消执行任务 如果任务已经完成、已经取消、或者由于其他原因无法取消 则尝试取消任务失败 如果尝试取消成功并且这个任务还没有启动那么这个任务就被取消不会再执行 如果任务已经启动就根据入参mayInterruptIfRunning决定是否中断该任务
 
     /**
      * Returns {@code true} if this task was cancelled before it completed
@@ -124,7 +124,7 @@ public interface Future<V> {
      *
      * @return {@code true} if this task was cancelled before it completed
      */
-    boolean isCancelled();
+    boolean isCancelled(); // 如果任务正常执行前被取消就返回true
 
     /**
      * Returns {@code true} if this task completed.
@@ -135,7 +135,7 @@ public interface Future<V> {
      *
      * @return {@code true} if this task completed
      */
-    boolean isDone();
+    boolean isDone(); // 如果任务已经完成就返回true 这里的完成指的是：正常终止、异常、取消
 
     /**
      * Waits if necessary for the computation to complete, and then
