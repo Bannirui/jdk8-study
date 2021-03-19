@@ -161,7 +161,7 @@ public class CountDownLatch { // 没有实现Serializable接口 无法序列化
     private static final class Sync extends AbstractQueuedSynchronizer {
         private static final long serialVersionUID = 4982264981922014374L;
 
-        Sync(int count) { // 传入初始次数
+        Sync(int count) { // 传入初始次数 如果state等于0 表示可以获得锁 如果不能0 表示重入次数
             setState(count); // 对sate状态变量赋值
         }
 
@@ -169,11 +169,11 @@ public class CountDownLatch { // 没有实现Serializable接口 无法序列化
             return getState();
         }
 
-        protected int tryAcquireShared(int acquires) { // 尝试获取共享锁
+        protected int tryAcquireShared(int acquires) { // 尝试获取共享锁 如果当前state是0 表示可以获取锁返回1 如果当前state不是0 表示已经被其他线程持锁返回-1
             return (getState() == 0) ? 1 : -1; // 这里state等于0的时候返回的是1，也就是说count减为0的时候获取总是成功 state不等于0的时候返回的是-1，也就是count不为0的时候总是要排队
         }
 
-        protected boolean tryReleaseShared(int releases) { // 尝试释放锁
+        protected boolean tryReleaseShared(int releases) { // 尝试释放锁 cas减少state变量 直到减到0表示锁已经释放
             // Decrement count; signal when transition to zero
             for (;;) {
                 int c = getState(); // state状态变量值
@@ -195,7 +195,7 @@ public class CountDownLatch { // 没有实现Serializable接口 无法序列化
      *        before threads can pass through {@link #await}
      * @throws IllegalArgumentException if {@code count} is negative
      */
-    public CountDownLatch(int count) { // 传入初始次数
+    public CountDownLatch(int count) { // 传入初始次数 初始化了Sync类
         if (count < 0) throw new IllegalArgumentException("count < 0");
         this.sync = new Sync(count); // 初始化同步器Sync
     }
@@ -227,7 +227,7 @@ public class CountDownLatch { // 没有实现Serializable接口 无法序列化
      * @throws InterruptedException if the current thread is interrupted
      *         while waiting
      */
-    public void await() throws InterruptedException {
+    public void await() throws InterruptedException { // 共享式获取同步状态 如果当前线程没有获取到同步状态 就会进入同步队列进行等待 同一时刻可以有多个线程获取同步状态 这个方法响应中断 如果这个方法被中断就会抛出异常返回
         sync.acquireSharedInterruptibly(1); // 调用同步器Sync Sync调用父类AQS的acquireSharedInterruptibly()方法
     }
 
@@ -287,7 +287,7 @@ public class CountDownLatch { // 没有实现Serializable接口 无法序列化
      *
      * <p>If the current count equals zero then nothing happens.
      */
-    public void countDown() {
+    public void countDown() { // 共享模式下释放
         sync.releaseShared(1); // 调用同步器Sync Sync调用父类AQS的释放共享锁方法
     }
 

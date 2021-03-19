@@ -625,7 +625,7 @@ public abstract class AbstractQueuedSynchronizer
      *
      * @param node the node
      */
-    private void setHead(Node node) {
+    private void setHead(Node node) { // 设置某个节点为首节点 并清空当前节点的线程和前驱节点 便于gc回收
         head = node;
         node.thread = null;
         node.prev = null;
