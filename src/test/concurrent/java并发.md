@@ -204,4 +204,8 @@ monitorexit
   * 只能保证一个变量的原子操作：可以通过AtomicReference来实现多个变量的原子操作
   * ABA问题 解决方案是版本号和StampedLock
   
+---
+
+* ThreadLocal
+  * 本质上，ThreadLocal是通过空间来换取时间，从而实现每个线程中都有一个变量的副本，这样每个线程都会操作该副本，而从完全规避了多线程的并发问题
 
