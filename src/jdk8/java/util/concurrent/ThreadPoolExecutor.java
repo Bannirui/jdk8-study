@@ -386,7 +386,7 @@ public class ThreadPoolExecutor extends AbstractExecutorService {
     private static final int RUNNING    = -1 << COUNT_BITS; // 111 00000... 表示可接受新任务 并且执行队列中的任务
     private static final int SHUTDOWN   =  0 << COUNT_BITS; // 000 00000... 表示不接受新任务 但可执行队列中的任务
     private static final int STOP       =  1 << COUNT_BITS; // 001 00000... 表示不接受新任务 且不再执行队列中的任务 且中断正在执行的任务
-    private static final int TIDYING    =  2 << COUNT_BITS; // 010 00000... 所有任务已经中止，且工作线程数量为0，最后变迁到这个状态的线程将要执行terminated()钩子方法，只会有一个线程执行这个方法
+    private static final int TIDYING    =  2 << COUNT_BITS; // 010 00000... 所有任务已经执行结束，包括了任务队列中的任务，且工作线程数量为0，最后变迁到这个状态的线程将要执行terminated()钩子方法，只会有一个线程执行这个方法
     private static final int TERMINATED =  3 << COUNT_BITS; // 011 00000... 中止状态，已经执行完terminated()钩子方法
 
     // Packing and unpacking ctl 下面这3个方法应该是体现了优质源码的风格 作者对存储内存极其吝啬 首相两个属性存储在一个变量中 其次使用位运算提高运算效率 再者需要合并、拆解属性值
