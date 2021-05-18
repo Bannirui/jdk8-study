@@ -97,3 +97,170 @@
 > 线程通讯
 * 传统上，使用synchronized关键字+wait+notify/notifyAll来实现多个线程之间的协调和通信，整个过程都是由jvm来帮助实现的，开发者无需了解底层实现细节
 * jdk1.5开始，并发包提供了Lock+Condition(await+signal/signalAll)来实现多个线程之间的协调和通信，整个过程都是由开发者来控制的，而且相比于传统方式，更加灵活，功能也更加强大
+* Thread.sleep与await（或者object的wait方法）的本质区别：sleep方法本质不会释放锁，而await会释放锁，并且在signal之后，还需要重新获取锁才能继续执行(该行为与Object的wait方法完全一致)
+
+---
+
+> volatile
+
+* volatile的作用
+  * 实现long/double 8个字节长度类型变量的原子操作(64位的数字写入内存是分两次 高32位写入和低32位写入)
+  * 防止指令重排序
+  * 实现变量的可见性
+
+* 当使用volatile修饰变量时，应用不会从寄存器中获取该变量，而是从驻内存中获取
+* 如果要实现volatile写操作的原子性，那么在等号右侧的赋值变量中就不能出现被多线程所共享的变量，哪怕这个变量也是volatile修饰的也不行
+
+* volatile和锁的比较
+  * volatile可以确保对写操作的原子性 但不具备排他性
+  * 使用锁可能会导致线程上下文的切换(内核态和用户态之间) 但使用volatile不会出现这种情况
+  
+* 防止指令重排序与实现变量的可见性都是通过内存屏障实现的 memory barrier
+```text
+volatile写入
+
+int a =1;
+String s = "dingrui";
+
+内存屏障 Release Barrier: 释放屏障-防止下面的volatile与上面的所有操作指令重排序
+volatile boolean b =true;
+内存屏障 Store Barrier: 存储屏障-刷新处理器缓存 结果就是确保该存储屏障之前的一切操作生成的结果对其他处理器可见
+```
+
+```text
+volatile读取
+
+内存屏障 Load Barrier: 加载屏障-可以刷新处理器缓存 同步其他处理器对该volatile变量的修改结果
+boolean c = b;
+内存屏障 Acquire Barrier: 获取屏障-可以防止上面的volatile读取操作与下面所有操作语句指令重排序
+```
+
+* 对于volatile关键字修饰的变量的读写操作 本质都是通过内存屏障来执行的
+* 内存屏障兼具了2个能力
+  * 防止指令重排序
+  * 实现变量内存的可见性
+* 对于读取操作 volatile可以确保该操作与后续的读写操作不会进行指令重排序
+* 对于修改操作 volatile可以确保该操作与上面的读写操作不会进行指令重排序
+* 锁同样具备变量内存可见性与防止指令重排序
+
+```text
+synchronized锁
+
+monitorenter
+内存屏障: Acquire Barrier
+...
+内存屏障: Release Barrier
+monitorexit
+```
+
+---
+
+> java内存模型
+
+* Java Memory Model Java内存模型JMM规范定义了3个问题
+  * 变量的原子性问题
+  * 变量的可见性问题
+  * 变量修改的时序性问题
+
+* happen-before规则
+  * 顺序执行规则(限定在单个线程上)：该线程的每个动作都happen-before它后面的动作
+  * 隐式锁(monitor)规则：unlock happen-before lock 之前的线程对于同步代码块的所有执行结果对于后续获取锁的线程来说都是可见的
+  * volatile读写规则：对于一个volatile变量的写操作一定会happen-before后续对该变量的读操作
+  * 多线程的启动规则：Thread对象的start方法happen-before该线程run方法的任何一个动作 包括在其中启动的任何子线程
+  * 多线程的终止规则：一个线程启动了一个子线程 并且调用了子线程的join方法等待其结束 那么当线程结束后 父线程的接下来的所有操作都可以看到子线程run方法中的执行结果
+  * 线程的中断规则：可以待哦用interrupt方法中断线程 这个调用happen-before对该线程中断的检查isInterrupted
+  
+---
+
+> CyclicBarrier
+
+* CyclicBarrier执行流程
+  * 初始化CyclicBarrier的时候对各种成员变量进行赋值，包括parties、count以及Runnable
+  * 当调用await方法时，底层会先检查计数器是否已经归零，如果已经归零，那么就先执行可选的Runnable的run方法，接下来开始下一个generation
+  * 在下一个分代中，将会重置count值为parties，并且创建新的Generation实例
+  * 同时调用Condition的signalAll方法，唤醒所有在屏障前面等待的线程，让其开始继续执行
+  * 如果计数器没有归零的话，当前的调用线程会通过Condition的await方法在屏障钱等待
+  * 以上所有执行流程都在lock锁的控制范围内，不会出现并发情况
+
+---
+
+> CAS
+
+* synchronized关键字和Lock锁机制都是悲观锁：无论做何种操作，首先都要先上锁，接下来再去执行后续的操作，从而确保接下来的所有的操作都是由当前这个线程在执行的
+* 乐观锁：线程在操作之前不会被做任何的预先处理，而是直接去执行，当最后执行变量更新的时候，当前线程需要有一种机制去确保当前操作的变量没有被其他线程修改，cas是乐观锁的一种极为重要的实现方式
+* cas：compare and swap 比较与交换 这是一个不断循环的过程，一直到变量值被修改成功为止，cas本身是由硬件指令提供支持的，硬件是通过一个原子指令来实现比较和交换的，cas可以确保变量操作的原子性
+* java中锁的3中实现
+  * synchronized
+  * AQS
+  * StampedLock
+  
+* 对于CAS来说 操作数主要涉及3个
+  * 需要被操作的内存值V
+  * 需要进行比较的值A
+  * 需要进行写入的值B
+  
+* CAS的限制和问题
+  * 循环开销问题：并发量大的时候导致线程一直自旋，cpu开销大
+  * 只能保证一个变量的原子操作：可以通过AtomicReference来实现多个变量的原子操作
+  * ABA问题 解决方案是版本号和StampedLock
+  
+---
+
+* ThreadLocal
+  * 本质上，ThreadLocal是通过空间来换取时间，从而实现每个线程中都有一个变量的副本，这样每个线程都会操作该副本，而从完全规避了多线程的并发问题
+
+---
+
+### AQS ReentrantLock的执行逻辑
+
+* 尝试获取对象的锁，如果获取不到，意味着已经有其他线程持有了锁，并且尚未释放，那么就进入到AQS的阻塞队列当中
+* 如果获取到，那么根据公平锁还是非公平锁进行不同的处理
+  * 如果是公平锁，那么线程会直接放置到AQS阻塞队列末尾
+  * 如果是非公平锁，那么线程会首先尝试进行CAS计算，如果成功，则姐获取到锁；如果失败，则与公平锁的处理方式一样，被放置到阻塞队列中
+* 当锁被释放时，调用unlock方法，那么底层会调用release方法对state成员变量进行减1的操作，如果减1之后state的值不为0，那么release操作执行完毕；如果减1之后state值为0，则调用LockSupport的unpark方法唤醒该线程之后的等待队列中的第一个，将其唤醒，使之能够获取到对象的锁；之所以调用release方法之后state值可能不为0，原因在于ReentrantLock是可重入锁，表示线程可以多次调用lock方法
+* 对于ReentrantLock而言，所谓的上锁，本质上就是对AQS中state成员变量的操作，对该成员变量+1表示上锁；对该成员变量-1表示释放锁
+
+---
+
+### AQS ReentrantReadWriteLock
+
+* 读锁
+  * 在获取读锁时，会尝试判断当前对象是否拥有了写锁，如果已经拥有写锁，则直接失效
+  * 如果当前线程没有写锁，就表示当前的对象没有拍他锁，则当前线程会尝试给对象加锁
+  * 如果当前线程已经拥有了该对象的读锁，那么直接将读锁数量+1
+* 写锁
+  * 在获取写锁时，会尝试判断当前对象是否拥有了锁(读锁或者写锁)，如果已经拥有了锁且持有的线程并非当前线程，直接失效
+  * 如果当前对象没有被加锁，那么写锁就会为当前对象上锁，并且将锁的数量+1
+  * 将当前对象的拍他锁线程持有者设置为自己
+
+---
+
+### AQS vs synchronized
+
+* synchronized
+  * synchronized关键字在底层的cpp实现中，存在两个重要的数据结构：waitSet、entryList
+  * waitSet中存放的是调用了Object对象的wait方法的线程对象(被封装成了cpp的Node对象)
+  * entryList中存放的是陷入阻塞状态、需要获取monitor的那些线程对象
+  * 当一个线程被notify后，他就会从waitSet移动到entryList中
+  * 进入到entryList后，该线程依然需要与其他线程进行竞争monitor锁
+  * 如果争抢到锁，就表示该线程获取到了对象的锁，它就以排他方式执行相应的同步代码
+  
+* AQS
+  * AQS中存在两种队列，分别是Condition对象上的条件队列，以及AQS本身的阻塞队列
+  * 这两个队列中的每一个对象都是Node示例(Node里面封装了线程对象)
+  * 当位于Condition条件队列中的线程被其他线程signal后，该线程就会从条件队列移动到AQS的阻塞队列中
+  * 位于AQS阻塞队列中的Node对象本质上都是由一个双向链表构成的
+  * 在获取AQS锁时，这些进入阻塞队列中的线程会按照在队列中的排序先后尝试获取
+  * 当AQS阻塞队列中的线程获取到锁后，就表示该线程已经可以正常执行了
+  * 陷入到阻塞状态的线程，依然需要进入到操作系统的内核态，进入阻塞(park方法实现)
+
+---
+
+### 线程池
+
+* 状态迁移
+  * RUNNING->SHUTDOWN 当调用了线程池的shutdown方法时，或者当finalize方法被隐式调用后(该方法内部会调用shutdown方法)
+  * RUNNING/SHUTDOWN->STOP 当调用了线程池的shutdownNow方法后
+  * SHUTDOWN->TIDYING 在线程池与阻塞队列均变空的时候
+  * TIDYING->TERMINATED 在terminated方法被执行完毕时
+  

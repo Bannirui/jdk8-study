@@ -111,7 +111,7 @@ import java.util.regex.PatternSyntaxException;
 public final class String
     implements java.io.Serializable, Comparable<String>, CharSequence { // String是final修饰的 不能被继承 使用final修饰的好处：1，缓存结果，string传参时不用担心被修改值 2，安全，不会经过一系列操作之后被修改值引发异常 3，性能，不可变的前提下字符串常量池才有意义
     /** The value is used for character storage. */
-    private final char value[]; // 底层的数据结构：字符数组
+    private final char value[]; // 底层的数据结构：字符数组 1个char占2个byte=8个字节 jdk>=1.9之后底层改为byte数组 1个byte=4个bit
 
     /** Cache the hash code for the string */
     private int hash; // Default to 0 // 缓存hashCode

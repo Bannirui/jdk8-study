@@ -253,3 +253,14 @@ monitorexit
   * 在获取AQS锁时，这些进入阻塞队列中的线程会按照在队列中的排序先后尝试获取
   * 当AQS阻塞队列中的线程获取到锁后，就表示该线程已经可以正常执行了
   * 陷入到阻塞状态的线程，依然需要进入到操作系统的内核态，进入阻塞(park方法实现)
+
+---
+
+### 线程池
+
+* 状态迁移
+  * RUNNING->SHUTDOWN 当调用了线程池的shutdown方法时，或者当finalize方法被隐式调用后(该方法内部会调用shutdown方法)
+  * RUNNING/SHUTDOWN->STOP 当调用了线程池的shutdownNow方法后
+  * SHUTDOWN->TIDYING 在线程池与阻塞队列均变空的时候
+  * TIDYING->TERMINATED 在terminated方法被执行完毕时
+  
